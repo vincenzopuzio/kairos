@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: AI-Personal-OS API
+  description: API for deterministic task management, critical path project tracking, and deep work workload analysis purposefully sculpted for Technical Leads.
+  version: 1.0.0
+
+components:
+  schemas:
+    Priority:
+      type: integer
+      enum: [1, 2, 3, 4] # 1: Critical (Highest), 4: Low
+
+    Status:
+      type: string
+      enum: [backlog, todo, in_progress, blocked, done]
+
+    HealthStatus:
+      type: string
+      enum: [on_track, at_risk, delayed]
+
+    Stakeholder:
+      type: object
+      required:
+        - name
+        - role
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        name: { type: string }
+        role: { type: string, example: "Senior Dev / PO / Client" }
+
+    Task:
+      type: object
+      required:
+        - title
+        - status
+        - priority
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        title: { type: string, maxLength: 255 }
+        description: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/Status' }
+        priority: { $ref: '#/components/schemas/Priority' }
+        deadline: { type: string, format: date-time, nullable: true }
+        project_id: { type: string, format: uuid, nullable: true }
+        blocked_by_stakeholder_id: { type: string, format: uuid, nullable: true }
+        is_deep_work: { type: boolean, default: false, description: "Whether this task necessitates uninterrupted concentration via a Deep Work Slot" }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+
+    Project:
+      type: object
+      required:
+        - name
+        - external_deadline
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        name: { type: string }
+        health_status: { $ref: '#/components/schemas/HealthStatus' }
+        external_deadline: { type: string, format: date-time }
+        created_at: { type: string, format: date-time, readOnly: true }
+
+paths:
+  /tasks:
+    get:
+      summary: Retrieve all user tasks (including implicitly blocked ones mapped via shadow tracking)
+      parameters:
+        - name: include_blocked
+          in: query
+          schema: { type: boolean, default: true }
+          description: "Toggle inclusion of tasks locked in the 'blocked' state"
+      responses:
+        '200':
+          description: A deterministic payload of pending operations
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Task' }
+    post:
+      summary: Initialize a new raw task (inherently supports AI-parsed Gap Filler workflows)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        '201':
+          description: Task successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+
+  /projects:
+    get:
+      summary: Aggregate and retrieve all tracked projects displaying current health statuses
+      responses:
+        '200':
+          description: List of tracked projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Project' }
+
+  /ai/daily-planner:
+    post:
+      summary: Autonomously structure the daily agenda by computing task timelines against team constraints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                available_hours: { type: integer, default: 8, minimum: 1, maximum: 24 }
+                focus_slots_preferred: { type: boolean, default: true, description: "Heaps preference towards continuous Deep Work Slots" }
+      responses:
+        '200':
+          description: A chronological JSON map orchestrating the day's timeline execution
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schedule:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        time_start: { type: string, format: time }
+                        time_end: { type: string, format: time }
+                        activity_type: { type: string, enum: [deep_work, shallow_work, meeting, buffer_time] }
+                        task_ids: { type: array, items: { type: string, format: uuid } }
+                        reasoning: { type: string, description: "Chain of Thought outlining strictly why this block was established" }
+                  insights: { type: string, description: "Explicit AI foresight outlining Daily Briefing critical path risks to be mitigated" }
+
+  /ai/decompose:
+    post:
+      summary: Gap Filler process - recursively collapses a vague Epic or complex task into discrete Atomic Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [task_id]
+              properties:
+                task_id: { type: string, format: uuid }
+      responses:
+        '200':
+          description: List of cleanly generated and isolated Atomic Tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Task' }
