@@ -1,15 +1,26 @@
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useTasks } from "@/hooks/useTasks"
+import { useTasks, useUpdateTask } from "@/hooks/useTasks"
+import { EditTaskModal } from "./edit-task-modal"
 
 export function DailyFocus() {
     const { data: tasks, isLoading } = useTasks(true)
+    const updateTaskMutation = useUpdateTask()
+    const [taskToEdit, setTaskToEdit] = useState<any>(null)
 
     // Systematically isolate a single high precedence task optimized for deep work
     const deepWorkTask = tasks?.find((t: any) => t.is_deep_work && (t.status === 'in_progress' || t.status === 'todo'))
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Native Isolated Modification Modal injected here */}
+            <EditTaskModal
+                task={taskToEdit}
+                open={!!taskToEdit}
+                onOpenChange={(open) => !open && setTaskToEdit(null)}
+            />
+
             <div className="flex items-end justify-between mb-8">
                 <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Daily Focus</h1>
                 <p className="text-sm font-medium text-muted-foreground">Today's computed critical path</p>
@@ -37,9 +48,14 @@ export function DailyFocus() {
                             </div>
                         )}
                         <div className="flex gap-4">
-                            <Button disabled={!deepWorkTask || isLoading}>Complete Task</Button>
-                            <Button disabled={!deepWorkTask || isLoading} variant="outline" className="border-border hover:bg-secondary">
-                                Delegate (Shadow Task)
+                            <Button
+                                disabled={!deepWorkTask || updateTaskMutation.isPending}
+                                onClick={() => updateTaskMutation.mutate({ id: deepWorkTask.id, status: 'done' })}
+                            >
+                                {updateTaskMutation.isPending ? "Executing..." : "Complete Task"}
+                            </Button>
+                            <Button disabled={!deepWorkTask} variant="outline" className="border-border hover:bg-secondary" onClick={() => setTaskToEdit(deepWorkTask)}>
+                                Modify Properties
                             </Button>
                         </div>
                     </CardContent>
@@ -66,21 +82,37 @@ export function DailyFocus() {
             </div>
 
             <div className="mt-10">
-                <h2 className="text-xl font-bold mb-4 tracking-tight">Upcoming Tasks</h2>
+                <h2 className="text-xl font-bold mb-4 tracking-tight">Upcoming Tasks Matrices</h2>
                 <div className="space-y-3">
                     {isLoading && (
                         <div className="h-12 w-full bg-secondary animate-pulse rounded-xl" />
                     )}
-                    {!isLoading && tasks?.filter((t: any) => !t.is_deep_work && t.status !== 'done').slice(0, 3).map((task: any, index: number) => (
+                    {!isLoading && tasks?.filter((t: any) => t.id !== deepWorkTask?.id && t.status !== 'done').slice(0, 5).map((task: any, index: number) => (
                         <div key={task.id || index} className="flex items-center p-4 border rounded-xl bg-card hover:border-foreground/20 transition-colors shadow-sm relative overflow-hidden group">
                             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex-1 font-semibold text-foreground">{task.title}</div>
-                            <div className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-secondary text-secondary-foreground border">
-                                Priority {task.priority}
+                            <div className="flex-1 font-semibold text-foreground relative z-10 flex items-center gap-2">
+                                {task.is_deep_work && <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" title="Deep Work Module" />}
+                                {task.title}
+                            </div>
+
+                            <div className="flex items-center gap-3 relative z-10">
+                                <div className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border text-secondary-foreground
+                                    ${task.status === 'blocked' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary'}`}>
+                                    {task.status}
+                                </div>
+                                <div className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-secondary text-secondary-foreground border">
+                                    Priority {task.priority}
+                                </div>
+                                <button onClick={() => setTaskToEdit(task)} className="p-1.5 hover:bg-secondary rounded-md text-muted-foreground hover:text-foreground transition-all group-hover:opacity-100 opacity-40 ml-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+                                </button>
+                                <button onClick={() => updateTaskMutation.mutate({ id: task.id, status: 'done' })} className="p-1.5 hover:bg-emerald-500/20 rounded-md text-emerald-500 transition-all group-hover:opacity-100 opacity-40">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                </button>
                             </div>
                         </div>
                     ))}
-                    {!isLoading && (!tasks || tasks.length === 0) && (
+                    {!isLoading && (!tasks || tasks.filter((t: any) => !t.is_deep_work && t.status !== 'done').length === 0) && (
                         <div className="text-sm text-muted-foreground italic pl-2">Your agenda is clear for now. No pending tasks!</div>
                     )}
                 </div>

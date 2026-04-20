@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchTasks, createTask, fetchProjects } from '@/lib/api'
+import { fetchTasks, createTask, fetchProjects, updateTask } from '@/lib/api'
 
-export function useTasks(includeBlocked = true) {
+export function useTasks(includeBlocked = true, projectId?: string, parentId?: string) {
     return useQuery({
-        queryKey: ['tasks', includeBlocked],
-        queryFn: () => fetchTasks(includeBlocked),
+        queryKey: ['tasks', includeBlocked, projectId, parentId],
+        queryFn: () => fetchTasks(includeBlocked, projectId, parentId),
     })
 }
 
@@ -21,6 +21,16 @@ export function useCreateTask() {
         mutationFn: createTask,
         onSuccess: () => {
             // Intelligently invalidates task queues natively to trigger refetch via React Query cache
+            queryClient.invalidateQueries({ queryKey: ['tasks'] })
+        }
+    })
+}
+
+export function useUpdateTask() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: updateTask,
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks'] })
         }
     })

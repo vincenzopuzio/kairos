@@ -1,12 +1,24 @@
 import { useAppStore } from './stores/useAppStore'
 import { CommandBar } from './components/command-bar'
 import { DailyFocus } from './components/daily-focus'
+import { PrinciplesView } from './components/principles-view'
+import { PersonasView } from './components/personas-view'
+import { WeeklyHorizonView } from './components/weekly-horizon'
+import { MidTermHorizonView } from './components/mid-term-horizon'
+import { RoadmapView } from './components/roadmap-view'
+import { SettingsView } from './components/settings-view'
 import { CreateTaskModal } from './components/create-task-modal'
 import { CreateProjectModal } from './components/create-project-modal'
 import { ExecutionPlannerModal } from './components/execution-planner-modal'
+import { ProjectsView } from './components/projects-view'
+import { KnowledgeBaseView } from './components/knowledge-base-view'
+import { ProjectDetailView } from './components/project-detail-view'
+import { StrategicChatView } from './components/chat-view'
 import { useTasks } from './hooks/useTasks'
 
 function App() {
+  const currentView = useAppStore(state => state.currentView)
+  const setCurrentView = useAppStore(state => state.setCurrentView)
   const isSidebarOpen = useAppStore(state => state.isSidebarOpen)
   const setCommandBarOpen = useAppStore(state => state.setCommandBarOpen)
 
@@ -39,9 +51,18 @@ function App() {
         <aside className="w-64 border-r border-border bg-card flex flex-col p-4 shrink-0 transition-all duration-300 relative z-20">
           <h2 className="text-xl font-bold tracking-tighter mb-8 text-foreground px-2">AI/OS</h2>
           <nav className="space-y-1.5 flex-1">
-            <a href="#" className="flex px-3 py-2.5 text-sm rounded-md bg-secondary text-secondary-foreground font-semibold shadow-sm transition-all">Daily Focus</a>
-            <a href="#" className="flex px-3 py-2.5 text-sm rounded-md hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">Project Matrix</a>
-            <a href="#" className="flex px-3 py-2.5 text-sm rounded-md hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">Knowledge Base</a>
+            <button onClick={() => setCurrentView('daily_focus')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'daily_focus' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Daily Focus</button>
+            <button onClick={() => setCurrentView('weekly_horizon')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'weekly_horizon' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Weekly Horizon</button>
+            <button onClick={() => setCurrentView('mid_term_horizon')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'mid_term_horizon' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Mid-Term Horizon</button>
+            <button onClick={() => setCurrentView('roadmap')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'roadmap' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Global Roadmap</button>
+            <button onClick={() => setCurrentView('personas')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'personas' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Teammate Personas</button>
+            <button onClick={() => setCurrentView('principles')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'principles' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Guiding Principles</button>
+            <button onClick={() => setCurrentView('projects')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'projects' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Project Matrix</button>
+            <button onClick={() => setCurrentView('knowledge_base')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'knowledge_base' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>🧠 Knowledge Base</button>
+            <button onClick={() => setCurrentView('strategic_chat')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all border-l-2 border-primary/40 ${currentView === 'strategic_chat' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>⚡ Strategic Link</button>
+            <div className="pt-6">
+              <button onClick={() => setCurrentView('settings')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-bold shadow-sm transition-all border ${currentView === 'settings' ? 'bg-primary/10 border-primary/40 text-primary' : 'border-transparent text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>⚙️ OS Configuration</button>
+            </div>
           </nav>
         </aside>
       )}
@@ -71,39 +92,63 @@ function App() {
 
         <div className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-4xl font-extrabold tracking-tight mb-8 text-foreground">Overview</h1>
+            {currentView === 'daily_focus' && (
+              <>
+                <h1 className="text-4xl font-extrabold tracking-tight mb-8 text-foreground">Overview</h1>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 select-none mb-10">
-              <div className="rounded-xl border border-border bg-card h-32 p-4 shadow-sm relative overflow-hidden group">
-                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <h3 className="text-sm font-semibold text-muted-foreground">Active Tasks</h3>
-                {isLoading ? (
-                  <div className="h-8 w-12 mt-2 bg-secondary rounded animate-pulse" />
-                ) : (
-                  <p className="text-3xl font-bold mt-2">{activeCount}</p>
-                )}
-              </div>
-              <div className="rounded-xl border border-border bg-card h-32 p-4 shadow-sm relative overflow-hidden group">
-                <div className="absolute inset-0 bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <h3 className="text-sm font-semibold text-muted-foreground">Blocked By</h3>
-                {isLoading ? (
-                  <div className="h-8 w-12 mt-2 bg-secondary rounded animate-pulse" />
-                ) : (
-                  <p className="text-3xl font-bold mt-2 text-destructive">{blockedCount}</p>
-                )}
-              </div>
-              <div
-                onClick={() => useAppStore.getState().setPlannerModalOpen(true)}
-                className="rounded-xl border border-amber-500/50 bg-amber-500/5 h-32 p-4 shadow-[0_0_15px_rgba(245,158,11,0.15)] cursor-pointer relative overflow-hidden group hover:border-amber-500 transition-colors col-span-2 md:col-span-1"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite]" />
-                <h3 className="text-sm font-bold text-amber-500 flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg> Optimize Agenda</h3>
-                <p className="text-muted-foreground text-xs mt-2 leading-relaxed">Let Gemini algorithmically synthesize your optimal Critical Path.</p>
-              </div>
-            </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 select-none mb-10">
+                  <div className="rounded-xl border border-border bg-card h-32 p-4 shadow-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <h3 className="text-sm font-semibold text-muted-foreground">Active Tasks</h3>
+                    {isLoading ? (
+                      <div className="h-8 w-12 mt-2 bg-secondary rounded animate-pulse" />
+                    ) : (
+                      <p className="text-3xl font-bold mt-2">{activeCount}</p>
+                    )}
+                  </div>
+                  <div className="rounded-xl border border-border bg-card h-32 p-4 shadow-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <h3 className="text-sm font-semibold text-muted-foreground">Blocked By</h3>
+                    {isLoading ? (
+                      <div className="h-8 w-12 mt-2 bg-secondary rounded animate-pulse" />
+                    ) : (
+                      <p className="text-3xl font-bold mt-2 text-destructive">{blockedCount}</p>
+                    )}
+                  </div>
+                  <div
+                    onClick={() => useAppStore.getState().setPlannerModalOpen(true)}
+                    className="rounded-xl border border-amber-500/50 bg-amber-500/5 h-32 p-4 shadow-[0_0_15px_rgba(245,158,11,0.15)] cursor-pointer relative overflow-hidden group hover:border-amber-500 transition-colors col-span-2 md:col-span-1"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite]" />
+                    <h3 className="text-sm font-bold text-amber-500 flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg> Optimize Agenda</h3>
+                    <p className="text-muted-foreground text-xs mt-2 leading-relaxed">Let Gemini algorithmically synthesize your optimal Critical Path.</p>
+                  </div>
+                </div>
 
-            {/* Delegate rendering of task matrices to the primary view component */}
-            <DailyFocus />
+                {/* Delegate rendering of task matrices to the primary view component */}
+                <DailyFocus />
+              </>
+            )}
+
+            {currentView === 'principles' && <PrinciplesView />}
+
+            {currentView === 'weekly_horizon' && <WeeklyHorizonView />}
+
+            {currentView === 'mid_term_horizon' && <MidTermHorizonView />}
+
+            {currentView === 'roadmap' && <RoadmapView />}
+
+            {currentView === 'personas' && <PersonasView />}
+
+            {currentView === 'settings' && <SettingsView />}
+
+            {currentView === 'projects' && <ProjectsView />}
+
+            {currentView === 'knowledge_base' && <KnowledgeBaseView />}
+
+            {currentView === 'project_detail' && <ProjectDetailView />}
+
+            {currentView === 'strategic_chat' && <StrategicChatView />}
           </div>
         </div>
       </main>

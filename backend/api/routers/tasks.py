@@ -1,5 +1,5 @@
 import uuid
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -13,10 +13,12 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 @router.get("/", response_model=List[Task])
 async def get_tasks(
     include_blocked: bool = True,
+    project_id: Optional[uuid.UUID] = None,
+    parent_id: Optional[uuid.UUID] = None,
     db: AsyncSession = Depends(get_db)
 ):
     """Retrieve tasks gracefully routing through the Task Service layer."""
-    return await tasks_service.get_all_tasks(db, include_blocked)
+    return await tasks_service.get_all_tasks(db, include_blocked, project_id, parent_id)
 
 @router.get("/{task_id}", response_model=Task)
 async def get_task_by_id(task_id: uuid.UUID, db: AsyncSession = Depends(get_db)):

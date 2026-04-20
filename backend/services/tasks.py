@@ -6,11 +6,22 @@ from models.domain import Task, StatusEnum, utc_now
 from models.schemas import TaskCreate, TaskUpdate
 import uuid
 
-async def get_all_tasks(db: AsyncSession, include_blocked: bool) -> List[Task]:
+async def get_all_tasks(
+    db: AsyncSession, 
+    include_blocked: bool, 
+    project_id: Optional[uuid.UUID] = None,
+    parent_id: Optional[uuid.UUID] = None
+) -> List[Task]:
     query = select(Task)
     if not include_blocked:
         query = query.where(Task.status != StatusEnum.blocked)
     
+    if project_id:
+        query = query.where(Task.project_id == project_id)
+        
+    if parent_id:
+        query = query.where(Task.parent_id == parent_id)
+        
     result = await db.exec(query)
     return result.all()
 

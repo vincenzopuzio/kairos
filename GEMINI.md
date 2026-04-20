@@ -13,5 +13,12 @@
 
 ## Development Workflow
 1. **Spec-First:** Always cross-reference `.docs/api-specs.yaml` before adding or modifying any API endpoints.
-2. **Atomic Commits:** Author and commit code in strictly logical, independently verifiable and testable chunks.
-3. **Auditability:** Every AI-generated mutation to the daily schedule or task queue must carry a substantive "reasoning" string, logging the AI's premise.
+2. **Migration-First:** Any change to `models/domain.py` MUST be followed by:
+   ```
+   cd backend
+   alembic revision --autogenerate -m "describe_the_change"
+   alembic upgrade head
+   ```
+   **NEVER** use `SQLModel.metadata.create_all()` to evolve the schema. This destroys existing data. Alembic is the sole authority for schema mutations.
+3. **Atomic Commits:** Author and commit code in strictly logical, independently verifiable and testable chunks.
+4. **Auditability:** Every AI-generated mutation to the daily schedule or task queue must carry a substantive "reasoning" string, logging the AI's premise.

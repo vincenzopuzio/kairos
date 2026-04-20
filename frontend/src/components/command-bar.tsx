@@ -56,7 +56,10 @@ export function CommandBar() {
                         <Settings className="mr-2 h-4 w-4 text-purple-500" />
                         <span>Initialize New Project Epic</span>
                     </CommandItem>
-                    <CommandItem>
+                    <CommandItem onSelect={() => {
+                        setCommandBarOpen(false)
+                        useAppStore.getState().setCurrentView('knowledge_base')
+                    }}>
                         <Search className="mr-2 h-4 w-4" />
                         <span>Search Knowledge Base (RAG)</span>
                     </CommandItem>
