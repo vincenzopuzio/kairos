@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { fetchSettings, updateSettings } from "../lib/api"
 
-export function useOsSettings() {
+export function useOsSettings(enabled = true) {
     return useQuery({
         queryKey: ['os_settings'],
-        queryFn: fetchSettings
+        queryFn: fetchSettings,
+        enabled
     })
 }
 

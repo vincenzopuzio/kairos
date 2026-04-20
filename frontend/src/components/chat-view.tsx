@@ -3,8 +3,7 @@ import { useStrategicChat } from "@/hooks/useAI"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useCreateTask, useUpdateTask } from "@/hooks/useTasks"
-import { useCreateProject } from "@/hooks/useProjects"
+import { useCreateTask, useUpdateTask, useCreateProject, useUpdateProject } from "@/hooks/useTasks"
 
 interface Message {
     role: 'user' | 'assistant'
@@ -21,6 +20,7 @@ export function StrategicChatView() {
     const createTask = useCreateTask()
     const updateTask = useUpdateTask()
     const createProject = useCreateProject()
+    const updateProject = useUpdateProject()
 
     const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -54,6 +54,9 @@ export function StrategicChatView() {
                 break
             case 'CREATE_PROJECT':
                 createProject.mutate(action.payload)
+                break
+            case 'UPDATE_PROJECT':
+                updateProject.mutate(action.payload)
                 break
         }
     }

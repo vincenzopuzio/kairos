@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useUpdateProject, useProjects } from "@/hooks/useProjects"
+import { useUpdateProject, useProjects } from "@/hooks/useTasks"
 import { useMilestones, useMilestoneMutations, useProjectTemplates } from "@/hooks/useMilestones"
 import { useProjectDependencies, useProjectDependencyMutations } from "@/hooks/useProjectDependencies"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"

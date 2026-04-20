@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useProjects, useDeleteProject } from "@/hooks/useProjects"
+import { useProjects, useDeleteProject } from "@/hooks/useTasks"
 import { useAppStore } from "@/stores/useAppStore"
 import { useMilestones } from "@/hooks/useMilestones"
 import { useProjectDependencies } from "@/hooks/useProjectDependencies"
@@ -10,7 +10,7 @@ import { EditProjectModal } from "./edit-project-modal"
 import { useTasks } from "@/hooks/useTasks"
 
 function ProjectStats({ projectId }: { projectId: string }) {
-    const { data: tasks, isLoading } = useTasks(true, projectId)
+    const { data: tasks, isLoading } = useTasks(true, true, projectId)
 
     if (isLoading) return <div className="h-6 w-full bg-secondary animate-pulse rounded mt-3" />
     if (!tasks || tasks.length === 0) return null
@@ -53,7 +53,7 @@ function ProjectStats({ projectId }: { projectId: string }) {
 
 function MilestoneProgress({ projectId }: { projectId: string }) {
     const { data: milestones } = useMilestones(projectId)
-    const { data: allProjects } = useProjects()
+    const { data: allProjects } = useProjects(true)
     const { data: dependencies } = useProjectDependencies(projectId)
 
     if (!milestones || milestones.length === 0) {
@@ -94,7 +94,7 @@ function MilestoneProgress({ projectId }: { projectId: string }) {
 }
 
 export function ProjectsView() {
-    const { data: projects, isLoading } = useProjects()
+    const { data: projects, isLoading } = useProjects(true)
     const { mutate: deleteProject } = useDeleteProject()
     const [editingProject, setEditingProject] = useState<any>(null)
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)

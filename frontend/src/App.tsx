@@ -15,14 +15,18 @@ import { KnowledgeBaseView } from './components/knowledge-base-view'
 import { ProjectDetailView } from './components/project-detail-view'
 import { StrategicChatView } from './components/chat-view'
 import { useTasks } from './hooks/useTasks'
+import { LoginView } from './components/login-view'
 
 function App() {
   const currentView = useAppStore(state => state.currentView)
   const setCurrentView = useAppStore(state => state.setCurrentView)
   const isSidebarOpen = useAppStore(state => state.isSidebarOpen)
   const setCommandBarOpen = useAppStore(state => state.setCommandBarOpen)
+  const isAuthenticated = useAppStore(state => state.isAuthenticated)
+  const logout = useAppStore(state => state.logout)
+  const { data: tasks, isLoading } = useTasks(isAuthenticated)
 
-  const { data: tasks, isLoading } = useTasks(true)
+  if (!isAuthenticated) return <LoginView />
 
   // Dynamic Analytical Computations via Frontend logic
   const activeCount = tasks?.filter((t: any) => t.status === 'todo' || t.status === 'in_progress').length || 0;
@@ -48,7 +52,7 @@ function App() {
 
       {/* Sidebar Core Component */}
       {isSidebarOpen && (
-        <aside className="w-64 border-r border-border bg-card flex flex-col p-4 shrink-0 transition-all duration-300 relative z-20">
+        <aside className="w-64 border-r border-border bg-card flex flex-col p-4 shrink-0 transition-all duration-300 relative z-20 overflow-y-auto min-h-0">
           <h2 className="text-xl font-bold tracking-tighter mb-8 text-foreground px-2">AI/OS</h2>
           <nav className="space-y-1.5 flex-1">
             <button onClick={() => setCurrentView('daily_focus')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'daily_focus' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Daily Focus</button>
@@ -88,6 +92,15 @@ function App() {
             <span className="mr-8 font-medium group-hover:text-foreground transition-colors">Command AI...</span>
             <kbd className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded text-muted-foreground border shadow-sm font-semibold">CMD+K</kbd>
           </div>
+
+          <button
+            onClick={() => logout()}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-destructive hover:bg-destructive/10 rounded-lg transition-all border border-transparent hover:border-destructive/20"
+            title="Terminate Session"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
+            <span className="hidden sm:inline">TERMINATE</span>
+          </button>
         </header>
 
         <div className="flex-1 p-8 overflow-y-auto">

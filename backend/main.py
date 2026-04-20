@@ -41,17 +41,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from api.dependencies import get_current_user
+from fastapi import Depends
+from api.routers import auth, tasks, projects, ai, stakeholders, strategic_goals, timeline, os_settings, knowledge, milestones, principles
+
+# ... (rest of middlewares)
+
 # Expose API Resource Layers
-app.include_router(tasks.router, prefix=settings.API_V1_STR)
-app.include_router(projects.router, prefix=settings.API_V1_STR)
-app.include_router(stakeholders.router, prefix=settings.API_V1_STR)
-app.include_router(strategic_goals.router, prefix=settings.API_V1_STR)
-app.include_router(timeline.router, prefix=settings.API_V1_STR)
-app.include_router(os_settings.router, prefix=settings.API_V1_STR)
-app.include_router(ai.router, prefix=settings.API_V1_STR)
-app.include_router(knowledge.router, prefix=settings.API_V1_STR)
-app.include_router(milestones.router, prefix=settings.API_V1_STR)
-app.include_router(principles.router, prefix=settings.API_V1_STR)
+app.include_router(auth.router, prefix=settings.API_V1_STR)
+
+# Protected Routes
+protected_deps = [Depends(get_current_user)]
+app.include_router(tasks.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(projects.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(stakeholders.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(strategic_goals.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(timeline.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(os_settings.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(ai.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(knowledge.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(milestones.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(principles.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
 
 @app.get("/health")
 async def health_check():

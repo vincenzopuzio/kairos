@@ -164,3 +164,20 @@ class KnowledgeEntryUpdate(BaseModel):
 class KnowledgeSearchRequest(BaseModel):
     query: str
 
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: uuid.UUID
+    email: str
+    is_active: bool
+    created_at: datetime
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+

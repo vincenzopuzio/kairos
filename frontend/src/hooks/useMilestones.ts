@@ -1,27 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchMilestones, createMilestone, updateMilestone, deleteMilestone, fetchProjectTemplates, applyProjectTemplate } from '@/lib/api';
 
-const API_URL = "http://localhost:8000/api/v1";
-
-export function useMilestones(projectId?: string) {
+export function useMilestones(projectId?: string, enabled = true) {
     return useQuery({
         queryKey: ['milestones', projectId],
-        enabled: !!projectId,
-        queryFn: async () => {
-            const res = await fetch(`${API_URL}/projects/${projectId}/milestones`);
-            if (!res.ok) throw new Error("Failed to fetch milestones");
-            return res.json();
-        }
+        enabled: enabled && !!projectId,
+        queryFn: () => fetchMilestones(projectId!)
     });
 }
 
-export function useProjectTemplates() {
+export function useProjectTemplates(enabled = true) {
     return useQuery({
         queryKey: ['project-templates'],
-        queryFn: async () => {
-            const res = await fetch(`${API_URL}/project-templates`);
-            if (!res.ok) throw new Error("Failed to fetch templates");
-            return res.json();
-        }
+        enabled,
+        queryFn: fetchProjectTemplates
     });
 }
 
@@ -33,41 +25,22 @@ export function useMilestoneMutations(projectId?: string) {
     };
 
     const create = useMutation({
-        mutationFn: async (data: { title: string; target_date?: string; order?: number }) => {
-            const res = await fetch(`${API_URL}/projects/${projectId}/milestones`, {
-                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
-            });
-            if (!res.ok) throw new Error("Failed to create milestone");
-            return res.json();
-        },
+        mutationFn: (data: any) => createMilestone(projectId!, data),
         onSuccess: invalidate
     });
 
     const update = useMutation({
-        mutationFn: async ({ id, ...data }: { id: string;[k: string]: any }) => {
-            const res = await fetch(`${API_URL}/milestones/${id}`, {
-                method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
-            });
-            if (!res.ok) throw new Error("Failed to update milestone");
-            return res.json();
-        },
+        mutationFn: ({ id, ...data }: { id: string;[k: string]: any }) => updateMilestone(id, data),
         onSuccess: invalidate
     });
 
     const remove = useMutation({
-        mutationFn: async (id: string) => {
-            const res = await fetch(`${API_URL}/milestones/${id}`, { method: "DELETE" });
-            if (!res.ok) throw new Error("Failed to delete milestone");
-        },
+        mutationFn: deleteMilestone,
         onSuccess: invalidate
     });
 
     const applyTemplate = useMutation({
-        mutationFn: async (templateId: string) => {
-            const res = await fetch(`${API_URL}/projects/${projectId}/apply-template/${templateId}`, { method: "POST" });
-            if (!res.ok) throw new Error("Failed to apply template");
-            return res.json();
-        },
+        mutationFn: (templateId: string) => applyProjectTemplate(projectId!, templateId),
         onSuccess: invalidate
     });
 

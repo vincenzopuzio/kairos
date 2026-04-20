@@ -15,8 +15,8 @@ from services.strategic_goals import get_all_strategic_goals
 # --- MODELS FOR CHAT INTERACTION ---
 
 class Action(BaseModel):
-    action_type: str = Field(description="Type of action: CREATE_TASK, UPDATE_TASK, CREATE_PROJECT")
-    payload: Dict[str, Any] = Field(description="Data for the action")
+    action_type: str = Field(description="Type of action: CREATE_TASK, UPDATE_TASK, CREATE_PROJECT, UPDATE_PROJECT")
+    payload: Dict[str, Any] = Field(description="Data for the action. For UPDATE actions, MUST include 'id'")
     reasoning: str = Field(description="Why this specific action is being proposed")
 
 class ChatResponse(BaseModel):
@@ -26,13 +26,14 @@ class ChatResponse(BaseModel):
 # --- TOOLS FOR THE AGENT ---
 
 advisor_agent = Agent(
-    model='google-gla:gemini-2.0-flash',
+    model='google-gla:gemini-2.5-flash',
     output_type=ChatResponse,
     system_prompt=(
         "You are the Strategic Advisor for the AI-Operating System. "
         "Your goal is to guide the user (a Technical Lead) by providing data-driven insights and actionable plans. "
         "You have access to the entire data model via tools. "
         "When recommending changes, provide a `proposed_plan` containing specific `Action` objects. "
+        "For 'UPDATE' actions, ensure the payload contains the 'id' of the entity. "
         "Always be concise, architect-focused, and professional."
     )
 )
@@ -45,8 +46,25 @@ async def get_os_context(ctx: RunContext[AsyncSession]) -> Dict[str, Any]:
     goals = await get_all_strategic_goals(db)
     
     return {
-        "projects": [{"id": str(p.id), "name": p.name, "health": p.health_status} for p in projects],
+        "projects": [{"id": str(p.id), "name": p.name, "health": p.health_status, "start_date": p.start_date.isoformat() if p.start_date else None} for p in projects],
         "strategic_goals": [{"id": str(g.id), "title": g.title, "target_hours": g.target_weekly_hours} for g in goals if g.is_active]
+    }
+
+@advisor_agent.tool
+async def get_project_details(ctx: RunContext[AsyncSession], project_id: str) -> Dict[str, Any]:
+    """Get full details of a specific project including its current description and deadlines."""
+    from services.projects import get_project_by_id
+    db = ctx.deps
+    p = await get_project_by_id(db, uuid.UUID(project_id))
+    if not p:
+        return {"error": "Project not found"}
+    return {
+        "id": str(p.id),
+        "name": p.name,
+        "description": p.description,
+        "health": p.health_status,
+        "start_date": p.start_date.isoformat() if p.start_date else None,
+        "external_deadline": p.external_deadline.isoformat() if p.external_deadline else None
     }
 
 @advisor_agent.tool
@@ -65,21 +83,14 @@ async def get_stakeholders(ctx: RunContext[AsyncSession]) -> List[Dict[str, Any]
 
 # --- SERVICE EXECUTION ---
 
+from services.ai_utils import run_with_fallback
+
 async def run_strategic_chat(db: AsyncSession, user_message: str, history: List[Any] = None) -> ChatResponse:
-    """Execute a chat turn with the advisor agent."""
+    """Execute a chat turn with the advisor agent, with automatic fallback for high demand."""
     try:
-        result = await advisor_agent.run(user_message, deps=db, message_history=history)
-        return result.data
+        return await run_with_fallback(advisor_agent, user_message, deps=db, history=history)
     except Exception as e:
-        # Handle Rate Limits / Quota Exhaustion specifically for better UX
-        error_msg = str(e)
-        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-            return ChatResponse(
-                message="⚠️ **AI-OS Quota Exhausted**: The Gemini API free-tier quota has been reached. Please wait a few moments (usually ~60s) or check your API billing limits at ai.google.dev.",
-                proposed_plan=[]
-            )
-        # Fallback for other issues
         return ChatResponse(
-            message=f"⚔️ **Strategic Link Error**: {error_msg}",
+            message=f"⚔️ **Strategic Link Error**: {str(e)}",
             proposed_plan=[]
         )

@@ -1,5 +1,4 @@
-import { useTasks, useUpdateTask } from "@/hooks/useTasks"
-import { useProjects } from "@/hooks/useProjects"
+import { useTasks, useUpdateTask, useProjects } from "@/hooks/useTasks"
 import { useAppStore } from "@/stores/useAppStore"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,8 +10,8 @@ export function ProjectDetailView() {
     const setCurrentView = useAppStore(state => state.setCurrentView)
     const setTaskModalOpen = useAppStore(state => state.setTaskModalOpen)
 
-    const { data: projects } = useProjects()
-    const { data: tasks, isLoading } = useTasks(true, projectId || undefined)
+    const { data: projects } = useProjects(true)
+    const { data: tasks, isLoading } = useTasks(true, true, projectId || undefined)
     const { mutate: updateTask } = useUpdateTask()
 
     const [taskToEdit, setTaskToEdit] = useState<any>(null)

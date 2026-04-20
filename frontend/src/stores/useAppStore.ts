@@ -17,6 +17,9 @@ interface AppState {
     setSelectedProjectId: (id: string | null) => void;
     selectedParentTaskId: string | null;
     setSelectedParentTaskId: (id: string | null) => void;
+    isAuthenticated: boolean;
+    setAuthenticated: (auth: boolean) => void;
+    logout: () => void;
 }
 
 export const useAppStore = create<AppState>()((set) => ({
@@ -35,5 +38,11 @@ export const useAppStore = create<AppState>()((set) => ({
     selectedProjectId: null,
     setSelectedProjectId: (id) => set({ selectedProjectId: id }),
     selectedParentTaskId: null,
-    setSelectedParentTaskId: (id) => set({ selectedParentTaskId: id })
+    setSelectedParentTaskId: (id) => set({ selectedParentTaskId: id }),
+    isAuthenticated: !!localStorage.getItem("token"),
+    setAuthenticated: (auth) => set({ isAuthenticated: auth }),
+    logout: () => {
+        localStorage.removeItem("token");
+        window.location.reload();
+    }
 }))

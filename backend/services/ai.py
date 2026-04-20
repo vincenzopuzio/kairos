@@ -18,6 +18,7 @@ from pydantic_ai import Agent
 
 from models.domain import Task, StatusEnum
 from services.tasks import get_task_by_id, get_all_tasks
+from services.ai_utils import run_with_fallback
 
 # --- GAP FILLER AGENT (Task Decomposition) ---
 
@@ -33,7 +34,7 @@ class DecomposeResult(BaseModel):
     sub_tasks: List[AtomicSubTask]
 
 gap_filler_agent = Agent(
-    model='google-gla:gemini-2.0-flash',
+    model='google-gla:gemini-2.5-flash',
     output_type=DecomposeResult,
     system_prompt=(
         "You are an elite Technical Architect. "
@@ -54,9 +55,7 @@ async def decompose_to_atomic_tasks(db: AsyncSession, task_id: uuid.UUID) -> Dec
         
     prompt = f"Break down this vague epic into atomic tasks.\nTitle: {parent_task.title}\nDescription: {parent_task.description or 'No desc'}"
     
-    # Fire Pydantic AI Execution
-    result = await gap_filler_agent.run(prompt, deps=principles_context)
-    return result.output
+    return await run_with_fallback(gap_filler_agent, prompt, deps=principles_context)
 
 # --- DAILY PLANNER AGENT (Deep Work Strategy) ---
 
@@ -73,7 +72,7 @@ class PlannerResult(BaseModel):
     schedule: List[ScheduleBlock]
 
 planner_agent = Agent(
-    model='google-gla:gemini-2.0-flash',
+    model='google-gla:gemini-2.5-flash',
     output_type=PlannerResult,
     system_prompt=(
         "You are a hyper-efficient Personal AI-OS orchestrating a Technical Lead's day. "
@@ -102,8 +101,7 @@ async def generate_daily_planner(db: AsyncSession, available_hours: int, focus_s
               f"{'I strongly prefer contiguous Deep Work Slots heavily weighted towards the morning.' if focus_slots_preferred else ''}\n\n"
               f"Current Deterministic Task Backlog:\n{task_catalog}")
               
-    result = await planner_agent.run(prompt, deps=principles_context)
-    return result.output
+    return await run_with_fallback(planner_agent, prompt, deps=principles_context)
 
 # --- WEEKLY HORIZON AGENT (Burnout Prevention & Delegation) ---
 
@@ -121,7 +119,7 @@ class WeeklyPlannerResult(BaseModel):
     days: List[WeeklyDayPlan]
 
 weekly_planner_agent = Agent(
-    model='google-gla:gemini-2.0-flash',
+    model='google-gla:gemini-2.5-flash',
     output_type=WeeklyPlannerResult,
     system_prompt=(
         "You are an elite Technical Operating System managing burnout and capacity. "
@@ -186,8 +184,7 @@ async def generate_weekly_planner(db: AsyncSession, overrides: Optional[WeeklyPl
         f"DELEGATION PERSONAS:\n{personas_str}"
     )
     
-    result = await weekly_planner_agent.run(prompt, deps=principles_context)
-    return result.output
+    return await run_with_fallback(weekly_planner_agent, prompt, deps=principles_context)
 
 # --- QUARTERLY HORIZON AGENT (Mid-Term Project Roadmapping) ---
 
@@ -201,7 +198,7 @@ class QuarterlyRoadmapResult(BaseModel):
     months: List[QuarterlyMonthBlock]
 
 quarterly_planner_agent = Agent(
-    model='google-gla:gemini-2.0-flash',
+    model='google-gla:gemini-2.5-flash',
     output_type=QuarterlyRoadmapResult,
     system_prompt=(
         "You are a Strategic Architect managing a 1-6 month OKR roadmap. "
@@ -244,8 +241,7 @@ async def generate_quarterly_roadmap(db: AsyncSession) -> QuarterlyRoadmapResult
         f"PROJECT BACKLOG:\n{projects_str}"
     )
     
-    result = await quarterly_planner_agent.run(prompt)
-    return result.output
+    return await run_with_fallback(quarterly_planner_agent, prompt)
 
 
 # --- KNOWLEDGE BASE AGENT (Semantic RAG over personal KB) ---
@@ -255,7 +251,7 @@ class KbSearchResult(BaseModel):
     cited_entry_titles: List[str] = Field(description="Titles of the Knowledge Base entries that were most relevant to the answer.")
 
 kb_agent = Agent(
-    model='google-gla:gemini-2.0-flash',
+    model='google-gla:gemini-2.5-flash',
     output_type=KbSearchResult,
     system_prompt=(
         "You are a personal Knowledge Management AI. "
@@ -278,6 +274,5 @@ async def ask_knowledge_base(db: AsyncSession, query: str) -> KbSearchResult:
     ])
     
     prompt = f"KNOWLEDGE BASE:\n{kb_dump}\n\nUSER QUESTION:\n{query}"
-    result = await kb_agent.run(prompt)
-    return result.output
+    return await run_with_fallback(kb_agent, prompt)
 
