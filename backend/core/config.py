@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
+    # AI Engine Auth
+    GEMINI_API_KEY: str | None = None
+    
     # DATABASE
     # By default, use an async sqlite in-memory or a local file
     DATABASE_URL: str = "sqlite+aiosqlite:///./sql_app.db"

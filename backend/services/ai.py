@@ -4,8 +4,12 @@ from typing import List, Dict, Any
 from sqlmodel.ext.asyncio.session import AsyncSession
 from pydantic import BaseModel, Field
 
-# Safely extract or inject dummy Gemini API key to avoid crash on import during tests
-if "GOOGLE_API_KEY" not in os.environ and "GEMINI_API_KEY" not in os.environ:
+from core.config import settings
+
+# Safely proxy the config API key down into os environments for the PydanticAI google wrapper natively
+if settings.GEMINI_API_KEY:
+    os.environ["GOOGLE_API_KEY"] = settings.GEMINI_API_KEY
+elif "GOOGLE_API_KEY" not in os.environ and "GEMINI_API_KEY" not in os.environ:
     os.environ["GOOGLE_API_KEY"] = "dummy-test-key"
 
 from pydantic_ai import Agent
@@ -27,7 +31,7 @@ class DecomposeResult(BaseModel):
     sub_tasks: List[AtomicSubTask]
 
 gap_filler_agent = Agent(
-    model='google-gla:gemini-1.5-pro',
+    model='google-gla:gemini-2.5-flash',
     output_type=DecomposeResult,
     system_prompt=(
         "You are an elite Technical Architect managing a codebase queue. "
@@ -45,7 +49,7 @@ async def decompose_to_atomic_tasks(db: AsyncSession, task_id: uuid.UUID) -> Dec
     
     # Fire Pydantic AI Execution
     result = await gap_filler_agent.run(prompt)
-    return result.data
+    return result.output
 
 # --- DAILY PLANNER AGENT (Deep Work Strategy) ---
 
@@ -62,7 +66,7 @@ class PlannerResult(BaseModel):
     schedule: List[ScheduleBlock]
 
 planner_agent = Agent(
-    model='google-gla:gemini-1.5-pro',
+    model='google-gla:gemini-2.5-flash',
     output_type=PlannerResult,
     system_prompt=(
         "You are a hyper-efficient Personal AI-OS orchestrating the day for a Technical Lead. "
@@ -88,4 +92,4 @@ async def generate_daily_planner(db: AsyncSession, available_hours: int, focus_s
               f"Current Deterministic Task Backlog:\n{task_catalog}")
               
     result = await planner_agent.run(prompt)
-    return result.data
+    return result.output

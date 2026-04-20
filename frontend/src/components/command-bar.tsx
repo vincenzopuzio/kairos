@@ -35,6 +35,14 @@ export function CommandBar() {
                 <CommandGroup heading="AI Actions">
                     <CommandItem onSelect={() => {
                         setCommandBarOpen(false)
+                        useAppStore.getState().setPlannerModalOpen(true)
+                    }}>
+                        <Zap className="mr-2 h-4 w-4 text-amber-500" />
+                        <span className="font-semibold text-amber-500">Generate Pydantic-AI Daily Planner</span>
+                        <CommandShortcut>⌘↵</CommandShortcut>
+                    </CommandItem>
+                    <CommandItem onSelect={() => {
+                        setCommandBarOpen(false)
                         useAppStore.getState().setTaskModalOpen(true)
                     }}>
                         <Calendar className="mr-2 h-4 w-4 text-emerald-500" />
@@ -49,11 +57,6 @@ export function CommandBar() {
                         <span>Initialize New Project Epic</span>
                     </CommandItem>
                     <CommandItem>
-                        <Zap className="mr-2 h-4 w-4 text-amber-500" />
-                        <span>Generate Daily Planner</span>
-                        <CommandShortcut>⌘↵</CommandShortcut>
-                    </CommandItem>
-                    <CommandItem>
                         <Search className="mr-2 h-4 w-4" />
                         <span>Search Knowledge Base (RAG)</span>
                     </CommandItem>
@@ -62,13 +65,8 @@ export function CommandBar() {
                 <CommandGroup heading="App Settings">
                     <CommandItem>
                         <User className="mr-2 h-4 w-4" />
-                        <span>Switch Profile</span>
+                        <span>Switch Developer Identity</span>
                         <CommandShortcut>⌘P</CommandShortcut>
-                    </CommandItem>
-                    <CommandItem>
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                        <CommandShortcut>⌘S</CommandShortcut>
                     </CommandItem>
                 </CommandGroup>
             </CommandList>

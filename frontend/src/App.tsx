@@ -3,6 +3,7 @@ import { CommandBar } from './components/command-bar'
 import { DailyFocus } from './components/daily-focus'
 import { CreateTaskModal } from './components/create-task-modal'
 import { CreateProjectModal } from './components/create-project-modal'
+import { ExecutionPlannerModal } from './components/execution-planner-modal'
 import { useTasks } from './hooks/useTasks'
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       <CommandBar />
 
-      {/* Root Interaction Modals */}
+      {/* Root Interaction Modals managed concurrently */}
       <CreateTaskModal
         open={useAppStore(state => state.taskModalOpen)}
         onOpenChange={(open) => useAppStore.getState().setTaskModalOpen(open)}
@@ -27,6 +28,10 @@ function App() {
       <CreateProjectModal
         open={useAppStore(state => state.projectModalOpen)}
         onOpenChange={(open) => useAppStore.getState().setProjectModalOpen(open)}
+      />
+      <ExecutionPlannerModal
+        open={useAppStore(state => state.plannerModalOpen)}
+        onOpenChange={(open) => useAppStore.getState().setPlannerModalOpen(open)}
       />
 
       {/* Sidebar Core Component */}
@@ -87,8 +92,13 @@ function App() {
                   <p className="text-3xl font-bold mt-2 text-destructive">{blockedCount}</p>
                 )}
               </div>
-              <div className="rounded-xl border border-border bg-card h-32 p-4 shadow-sm opacity-50 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+              <div
+                onClick={() => useAppStore.getState().setPlannerModalOpen(true)}
+                className="rounded-xl border border-amber-500/50 bg-amber-500/5 h-32 p-4 shadow-[0_0_15px_rgba(245,158,11,0.15)] cursor-pointer relative overflow-hidden group hover:border-amber-500 transition-colors col-span-2 md:col-span-1"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite]" />
+                <h3 className="text-sm font-bold text-amber-500 flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg> Optimize Agenda</h3>
+                <p className="text-muted-foreground text-xs mt-2 leading-relaxed">Let Gemini algorithmically synthesize your optimal Critical Path.</p>
               </div>
             </div>
 
