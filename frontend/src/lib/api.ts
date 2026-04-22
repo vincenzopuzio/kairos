@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
 
-async function request(path: string, options: RequestInit = {}) {
+export async function request(path: string, options: RequestInit = {}) {
     const token = localStorage.getItem("token");
     const headers = {
         "Content-Type": "application/json",
@@ -58,6 +58,11 @@ export const createStakeholder = (data: any) => request("/stakeholders/", { meth
 export const updateStakeholder = ({ id, ...data }: any) => request(`/stakeholders/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 export const deleteStakeholder = (id: string) => request(`/stakeholders/${id}`, { method: "DELETE" });
 
+export const fetchOrganizations = () => request("/organizations/");
+export const createOrganization = (data: any) => request("/organizations/", { method: "POST", body: JSON.stringify(data) });
+export const updateOrganization = ({ id, ...data }: any) => request(`/organizations/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+export const deleteOrganization = (id: string) => request(`/organizations/${id}`, { method: "DELETE" });
+
 export const fetchStrategicGoals = () => request("/strategic-goals/");
 export const createStrategicGoal = (data: any) => request("/strategic-goals/", { method: "POST", body: JSON.stringify(data) });
 export const updateStrategicGoal = ({ id, ...data }: any) => request(`/strategic-goals/${id}`, { method: "PATCH", body: JSON.stringify(data) });
@@ -101,6 +106,15 @@ export const askKb = (query: string) => request("/ai/ask-kb", { method: "POST", 
 
 export const fetchPrinciples = () => request("/principles/");
 export const updatePrinciple = (id: string, data: any) => request(`/principles/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+export const fetchProjectDetail = (id: string) => request(`/projects/${id}`);
 export const updateProject = (id: string, data: any) => request(`/projects/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 export const createProject = (data: any) => request("/projects/", { method: "POST", body: JSON.stringify(data) });
 export const deleteProject = (id: string) => request(`/projects/${id}`, { method: "DELETE" });
+
+export const fetchInteractions = (stakeholderId: string) => request(`/interactions/stakeholder/${stakeholderId}`);
+export const fetchAllInteractions = () => request("/interactions/");
+export const createInteraction = (data: { content: string, stakeholder_ids?: string[], sentiment?: string, lesson_learned?: string }) => request("/interactions/", { method: "POST", body: JSON.stringify(data) });
+export const fetchLessonsLearned = () => request("/interactions/lessons-learned");
+export const workplaceCoaching = (stakeholderId: string) => request("/ai/workplace-coaching", { method: "POST", body: JSON.stringify({ stakeholder_id: stakeholderId }) });
+export const parsePersona = (text: string) => request("/ai/parse-persona", { method: "POST", body: JSON.stringify({ text }) });
+export const fetchPersona = (url: string) => request("/ai/fetch-persona", { method: "POST", body: JSON.stringify({ url }) });

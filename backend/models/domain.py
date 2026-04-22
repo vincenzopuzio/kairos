@@ -1,8 +1,8 @@
 import uuid
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 from datetime import datetime, timezone
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -59,6 +59,18 @@ class OrganizationEnum(str, Enum):
     internal = "internal"
     external = "external"
 
+class CircleEnum(str, Enum):
+    teammate = "teammate"
+    client = "client"
+    same_org = "same_org"
+    different_org = "different_org"
+
+class SentimentEnum(str, Enum):
+    positive = "positive"
+    neutral = "neutral"
+    tense = "tense"
+    hostile = "hostile"
+
 class User(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     email: str = Field(unique=True, index=True)
@@ -66,11 +78,43 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=utc_now)
 
+class StakeholderInteractionLink(SQLModel, table=True):
+    interaction_id: uuid.UUID = Field(foreign_key="stakeholderinteraction.id", primary_key=True, ondelete="CASCADE")
+    stakeholder_id: uuid.UUID = Field(foreign_key="stakeholder.id", primary_key=True, ondelete="CASCADE")
+
+class StakeholderInteraction(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    content: str = Field() # The journal/diary entry
+    sentiment: SentimentEnum = Field(default=SentimentEnum.neutral)
+    lesson_learned: Optional[str] = Field(default=None)
+    advice_received: Optional[str] = Field(default=None)
+    created_at: datetime = Field(default_factory=utc_now)
+    
+    # Relationship
+    stakeholders: List["Stakeholder"] = Relationship(back_populates="interactions", link_model=StakeholderInteractionLink)
+
+class ProjectStakeholderLink(SQLModel, table=True):
+    project_id: uuid.UUID = Field(foreign_key="project.id", primary_key=True, ondelete="CASCADE")
+    stakeholder_id: uuid.UUID = Field(foreign_key="stakeholder.id", primary_key=True, ondelete="CASCADE")
+
+class Organization(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(unique=True, index=True)
+    description: Optional[str] = Field(default=None)
+    industry: Optional[str] = Field(default=None)
+    created_at: datetime = Field(default_factory=utc_now)
+
+    # Relationships
+    stakeholders: List["Stakeholder"] = Relationship(back_populates="org")
+    projects: List["Project"] = Relationship(back_populates="org")
+
 class Stakeholder(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(unique=True, index=True)
     role: str
-    company: str = Field(default="Avanade")
+    company: str = Field(default="Avanade") # Legacy/Display field
+    
+    organization_id: Optional[uuid.UUID] = Field(default=None, foreign_key="organization.id", ondelete="SET NULL")
     
     # AI Teammate Persona Properties
     grade: GradeEnum = Field(default=GradeEnum.peer)
@@ -78,6 +122,7 @@ class Stakeholder(SQLModel, table=True):
     proactivity: ProactivityEnum = Field(default=ProactivityEnum.medium)
     productivity: ProductivityEnum = Field(default=ProductivityEnum.medium)
     organization: OrganizationEnum = Field(default=OrganizationEnum.internal)
+    circle: CircleEnum = Field(default=CircleEnum.same_org)
     interaction_type: InteractionEnum = Field(default=InteractionEnum.cooperate)
     
     can_delegate: bool = Field(default=False)
@@ -85,6 +130,11 @@ class Stakeholder(SQLModel, table=True):
     general_description: str = Field(default="") # Explicit context vector for LLM evaluation
     
     created_at: datetime = Field(default_factory=utc_now)
+    
+    # Relationships
+    interactions: List[StakeholderInteraction] = Relationship(back_populates="stakeholders", link_model=StakeholderInteractionLink)
+    org: Optional[Organization] = Relationship(back_populates="stakeholders")
+    projects: List["Project"] = Relationship(back_populates="stakeholders", link_model=ProjectStakeholderLink)
 
 class Project(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -94,7 +144,14 @@ class Project(SQLModel, table=True):
     project_type: ProjectTypeEnum = Field(default=ProjectTypeEnum.deadline_driven)
     start_date: Optional[datetime] = Field(default=None)
     external_deadline: Optional[datetime] = Field(default=None)  # None for evergreen projects
+    organization_id: Optional[uuid.UUID] = Field(default=None, foreign_key="organization.id", ondelete="SET NULL")
     created_at: datetime = Field(default_factory=utc_now)
+
+    # Relationships
+    stakeholders: List[Stakeholder] = Relationship(back_populates="projects", link_model=ProjectStakeholderLink)
+    org: Optional[Organization] = Relationship(back_populates="projects")
+    tasks: List["Task"] = Relationship(back_populates="project")
+    milestones: List["Milestone"] = Relationship(back_populates="project")
 
 class ProjectTemplate(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -106,6 +163,7 @@ class ProjectTemplate(SQLModel, table=True):
 class Milestone(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     project_id: uuid.UUID = Field(foreign_key="project.id", ondelete="CASCADE")
+    project: "Project" = Relationship(back_populates="milestones")
     title: str
     target_date: Optional[datetime] = Field(default=None)
     is_completed: bool = Field(default=False)
@@ -125,6 +183,7 @@ class Task(SQLModel, table=True):
     priority: int = Field(default=4, ge=1, le=4)
     deadline: Optional[datetime] = Field(default=None)
     project_id: Optional[uuid.UUID] = Field(default=None, foreign_key="project.id", ondelete="CASCADE")
+    project: Optional["Project"] = Relationship(back_populates="tasks")
     milestone_id: Optional[uuid.UUID] = Field(default=None, foreign_key="milestone.id", ondelete="SET NULL")
     parent_id: Optional[uuid.UUID] = Field(default=None, foreign_key="task.id", ondelete="CASCADE")
     blocked_by_stakeholder_id: Optional[uuid.UUID] = Field(default=None, foreign_key="stakeholder.id")
@@ -174,3 +233,6 @@ class KnowledgeEntry(SQLModel, table=True):
     source_url: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
+
+
+

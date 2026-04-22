@@ -1,8 +1,19 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from models.domain import StatusEnum, HealthEnum, GradeEnum, SeniorityEnum, ProactivityEnum, ProductivityEnum, OrganizationEnum, InteractionEnum, StrategicCategoryEnum, ProjectTypeEnum, CircleEnum
+from typing import List
 import uuid
-from models.domain import StatusEnum, HealthEnum, GradeEnum, SeniorityEnum, ProactivityEnum, ProductivityEnum, OrganizationEnum, InteractionEnum, StrategicCategoryEnum, ProjectTypeEnum
+
+class OrganizationCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    industry: Optional[str] = None
+
+class OrganizationUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    industry: Optional[str] = None
 
 class TaskCreate(BaseModel):
     title: str
@@ -35,6 +46,8 @@ class ProjectCreate(BaseModel):
     project_type: ProjectTypeEnum = ProjectTypeEnum.deadline_driven
     start_date: Optional[datetime] = None
     external_deadline: Optional[datetime] = None
+    stakeholder_ids: Optional[List[uuid.UUID]] = None
+    organization_id: Optional[uuid.UUID] = None
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
@@ -43,6 +56,39 @@ class ProjectUpdate(BaseModel):
     project_type: Optional[ProjectTypeEnum] = None
     start_date: Optional[datetime] = None
     external_deadline: Optional[datetime] = None
+    stakeholder_ids: Optional[List[uuid.UUID]] = None
+    organization_id: Optional[uuid.UUID] = None
+
+class ProjectTaskStats(BaseModel):
+    todo: int = 0
+    in_progress: int = 0
+    blocked: int = 0
+    done: int = 0
+    total: int = 0
+
+class ProjectMilestoneStats(BaseModel):
+    total: int = 0
+    completed: int = 0
+
+class ProjectRead(BaseModel):
+    id: uuid.UUID
+    name: str
+    description: Optional[str] = None
+    health_status: HealthEnum
+    project_type: ProjectTypeEnum
+    start_date: Optional[datetime] = None
+    external_deadline: Optional[datetime] = None
+    organization_id: Optional[uuid.UUID] = None
+    created_at: datetime
+    task_stats: Optional[ProjectTaskStats] = None
+    milestone_stats: Optional[ProjectMilestoneStats] = None
+    # We'll use basic dicts or any for nested models to avoid circular imports if any, 
+    # but usually schemas are fine.
+    org: Optional[dict] = None
+    stakeholders: List[dict] = []
+
+    class Config:
+        from_attributes = True
 
 class MilestoneCreate(BaseModel):
     title: str
@@ -64,10 +110,12 @@ class StakeholderCreate(BaseModel):
     proactivity: ProactivityEnum = ProactivityEnum.medium
     productivity: ProductivityEnum = ProductivityEnum.medium
     organization: OrganizationEnum = OrganizationEnum.internal
+    circle: CircleEnum = CircleEnum.same_org
     interaction_type: InteractionEnum = InteractionEnum.cooperate
     can_delegate: bool = False
     skills: str = ""
     general_description: str = ""
+    organization_id: Optional[uuid.UUID] = None
 
 class StakeholderUpdate(BaseModel):
     name: Optional[str] = None
@@ -78,10 +126,12 @@ class StakeholderUpdate(BaseModel):
     proactivity: Optional[ProactivityEnum] = None
     productivity: Optional[ProductivityEnum] = None
     organization: Optional[OrganizationEnum] = None
+    circle: Optional[CircleEnum] = None
     interaction_type: Optional[InteractionEnum] = None
     can_delegate: Optional[bool] = None
     skills: Optional[str] = None
     general_description: Optional[str] = None
+    organization_id: Optional[uuid.UUID] = None
 
 class StrategicGoalCreate(BaseModel):
     title: str

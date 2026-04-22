@@ -10,6 +10,9 @@ async def get_all_stakeholders(db: AsyncSession) -> List[Stakeholder]:
     result = await db.exec(select(Stakeholder))
     return result.all()
 
+async def get_stakeholder_by_id(db: AsyncSession, stakeholder_id: uuid.UUID) -> Optional[Stakeholder]:
+    return await db.get(Stakeholder, stakeholder_id)
+
 async def create_new_stakeholder(db: AsyncSession, st_in: StakeholderCreate) -> Stakeholder:
     db_st = Stakeholder(**st_in.model_dump())
     db.add(db_st)

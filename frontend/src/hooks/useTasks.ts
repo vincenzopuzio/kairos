@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchTasks, createTask, fetchProjects, updateTask, updateProject, deleteProject as deleteProjectReq, createProject as createProjectReq } from '@/lib/api'
+import { fetchTasks, createTask, fetchProjects, updateTask, updateProject, deleteProject as deleteProjectReq, createProject as createProjectReq, fetchProjectDetail } from '@/lib/api'
 
 export function useTasks(enabled = true, includeBlocked = true, projectId?: string, parentId?: string) {
     return useQuery({
@@ -13,7 +13,18 @@ export function useProjects(enabled = true) {
     return useQuery({
         queryKey: ['projects'],
         queryFn: fetchProjects,
-        enabled
+        enabled,
+        staleTime: 0,
+        refetchOnMount: 'always'
+    })
+}
+
+export function useProjectDetail(projectId?: string) {
+    return useQuery({
+        queryKey: ['projects', projectId],
+        queryFn: () => projectId ? fetchProjectDetail(projectId) : null,
+        enabled: !!projectId,
+        staleTime: 0
     })
 }
 

@@ -16,6 +16,7 @@ import { ProjectDetailView } from './components/project-detail-view'
 import { StrategicChatView } from './components/chat-view'
 import { useTasks } from './hooks/useTasks'
 import { LoginView } from './components/login-view'
+import { StrategicJournalView } from './components/strategic-journal-view'
 
 function App() {
   const currentView = useAppStore(state => state.currentView)
@@ -64,6 +65,7 @@ function App() {
             <button onClick={() => setCurrentView('projects')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'projects' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Project Matrix</button>
             <button onClick={() => setCurrentView('knowledge_base')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'knowledge_base' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>🧠 Knowledge Base</button>
             <button onClick={() => setCurrentView('strategic_chat')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all border-l-2 border-primary/40 ${currentView === 'strategic_chat' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>⚡ Strategic Link</button>
+            <button onClick={() => setCurrentView('strategic_journal')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all border-l-2 border-amber-500/40 ${currentView === 'strategic_journal' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>🎯 Strategic Journal</button>
             <div className="pt-6">
               <button onClick={() => setCurrentView('settings')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-bold shadow-sm transition-all border ${currentView === 'settings' ? 'bg-primary/10 border-primary/40 text-primary' : 'border-transparent text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>⚙️ OS Configuration</button>
             </div>
@@ -162,6 +164,8 @@ function App() {
             {currentView === 'project_detail' && <ProjectDetailView />}
 
             {currentView === 'strategic_chat' && <StrategicChatView />}
+
+            {currentView === 'strategic_journal' && <StrategicJournalView />}
           </div>
         </div>
       </main>

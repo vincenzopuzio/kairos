@@ -7,6 +7,7 @@ import uuid
 from api.dependencies import get_db
 from models.schemas import WeeklyPlannerRequest
 from services import ai as ai_service
+from services.ai import PersonaParseResult
 
 router = APIRouter(prefix="/ai", tags=["AI Intelligence"])
 
@@ -61,4 +62,26 @@ async def strategic_chat(request: ChatRequest, db: AsyncSession = Depends(get_db
     """Interactive multi-turn chat with the Strategic Advisor."""
     from services.ai_chat import run_strategic_chat
     return await run_strategic_chat(db, request.message, request.history)
+
+class CoachingRequest(BaseModel):
+    stakeholder_id: uuid.UUID
+
+@router.post("/workplace-coaching")
+async def workplace_coaching(request: CoachingRequest, db: AsyncSession = Depends(get_db)):
+    """Analyze stakeholder dynamics and provide targeted relationship coaching."""
+    return await ai_service.generate_workplace_coaching(db, request.stakeholder_id)
+
+class PersonaParseRequest(BaseModel):
+    text: str
+
+@router.post("/parse-persona", response_model=PersonaParseResult)
+async def parse_persona_route(request: PersonaParseRequest):
+    return await ai_service.parse_persona_from_text(request.text)
+
+class PersonaFetchRequest(BaseModel):
+    url: str
+
+@router.post("/fetch-persona", response_model=PersonaParseResult)
+async def fetch_persona_route(request: PersonaFetchRequest):
+    return await ai_service.fetch_persona_from_url(request.url)
 

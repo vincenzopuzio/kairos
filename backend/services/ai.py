@@ -1,6 +1,8 @@
 import os
 import uuid
+import httpx
 from typing import List, Dict, Any, Optional
+from fastapi import HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 from pydantic import BaseModel, Field
 from models.domain import Task, Stakeholder, StrategicGoal, Project, StatusEnum, HealthEnum
@@ -276,3 +278,126 @@ async def ask_knowledge_base(db: AsyncSession, query: str) -> KbSearchResult:
     prompt = f"KNOWLEDGE BASE:\n{kb_dump}\n\nUSER QUESTION:\n{query}"
     return await run_with_fallback(kb_agent, prompt)
 
+
+# --- WORKPLACE COACHING AGENT (Relationship Strategy) ---
+
+class CoachingAction(BaseModel):
+    title: str
+    description: str
+
+class CoachingResult(BaseModel):
+    recommended_mindset: str = Field(description="The internal posture the user should adopt (e.g. 'Constructive Neutrality')")
+    strategic_rationale: str = Field(description="Why this mindset and these actions are chosen based on the history.")
+    immediate_actions: List[CoachingAction] = Field(description="2-3 concrete steps to take now.")
+    suggested_response: Optional[str] = Field(description="A word-for-word quote or script to use in the next interaction.")
+
+workplace_coaching_agent = Agent(
+    model='google-gla:gemini-2.5-flash',
+    output_type=CoachingResult,
+    system_prompt=(
+        "You are an elite Executive Coach specializing in high-stakes workplace relationships. "
+        "Your goal is to provide a user (Technical Lead) with a strategic game plan for managing a specific colleague. "
+        "Analyze the provided interaction history and relationship context. "
+        "Focus on: de-escalating tension, maintaining professional integrity, and achieving strategic goals. "
+        "Be concise, psychological, and tactical."
+    )
+)
+
+async def generate_workplace_coaching(db: AsyncSession, stakeholder_id: uuid.UUID) -> CoachingResult:
+    from services.stakeholders import get_stakeholder_by_id
+    from services.interactions import get_interactions_by_stakeholder
+    from services.principles import get_all_principles
+
+    stakeholder = await get_stakeholder_by_id(db, stakeholder_id)
+    if not stakeholder:
+        raise ValueError("Stakeholder not found")
+
+    interactions = await get_interactions_by_stakeholder(db, stakeholder_id)
+    principles = await get_all_principles(db)
+
+    # Context construction
+    principles_context = "\n".join([f"- {p.title}: {p.actionable_advice}" for p in principles])
+    history_context = "\n".join([
+        f"[{i.created_at.isoformat()}] {i.sentiment.upper()}: {i.content}\nLesson: {i.lesson_learned or 'None'}"
+        for i in interactions[:10]  # Last 10 interactions
+    ])
+
+    prompt = (
+        f"Provide strategic coaching for managing my relationship with {stakeholder.name} ({stakeholder.role}).\n\n"
+        f"GUIDING PRINCIPLES:\n{principles_context}\n\n"
+        f"STAKEHOLDER CONTEXT:\n"
+        f"- Sub-Team/Company: {stakeholder.company}\n"
+        f"- Seniority: {stakeholder.seniority}\n"
+        f"- Delegation: {'Yes' if stakeholder.can_delegate else 'No'}\n"
+        f"- Skills: {stakeholder.skills}\n\n"
+        f"RECENT INTERACTION HISTORY:\n{history_context if history_context else 'No history yet.'}\n\n"
+        f"Provide your strategic recommendation."
+    )
+
+    return await run_with_fallback(workplace_coaching_agent, prompt)
+
+
+# --- PERSONA IMPORTER AGENT (LinkedIn/Profile Scraping) ---
+
+class PersonaParseResult(BaseModel):
+    name: str = Field(description="Full name of the person")
+    role: str = Field(description="Current professional title")
+    company: str = Field(description="Current organization or company")
+    skills: str = Field(description="Comma-separated list of top 5-7 professional skills")
+    general_description: str = Field(description="A concise 2-3 sentence professional bio or summary of their background")
+    seniority: str = Field(description="One of: junior, expert, manager, executive")
+    interaction_type: str = Field(description="One of: cooperate, support, oversee, challenge")
+
+persona_importer_agent = Agent(
+    model='google-gla:gemini-2.5-flash',
+    output_type=PersonaParseResult,
+    system_prompt=(
+        "You are an expert Talent Sourcer and Organizational Psychologist. "
+        "You will be provided with raw text from a professional profile (e.g., LinkedIn). "
+        "Extract the person's identity and professional context into a structured format. "
+        "INSTRUCTIONS:\n"
+        "1. Map their experience to one of our seniority levels: junior, expert, manager, executive.\n"
+        "2. Infer the best interaction type (cooperate, support, oversee, challenge) based on their likely role relative to a Technical Lead.\n"
+        "3. Summarize their bio into a 'general_description' that highlights their strategic value.\n"
+        "4. Standardize skills into a clean comma-separated string."
+    )
+)
+
+async def parse_persona_from_text(profile_text: str) -> PersonaParseResult:
+    prompt = f"Extract professional persona data from the following profile text:\n\n{profile_text}"
+    return await run_with_fallback(persona_importer_agent, prompt)
+
+
+async def fetch_persona_from_url(url: str) -> PersonaParseResult:
+    """Attempts to fetch profile data directly from a URL."""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    
+    async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
+        try:
+            # Note: LinkedIn frequently blocks automated requests (AuthWalls).
+            response = await client.get(url, timeout=15.0)
+            
+            # Code 999 is a LinkedIn-specific bot-detection code.
+            if response.status_code in [403, 999] or "authwall" in str(response.url) or "login" in str(response.url):
+                raise HTTPException(
+                    status_code=403, 
+                    detail="LinkedIn blocked the automated fetch request (Security Check). Please use the 'Smart Import' (Copy-Paste Profile Text) method as a workaround."
+                )
+                
+            response.raise_for_status()
+            
+            # Pass the raw HTML (capped) to the AI for extraction
+            # We strip common tag boilerplate to save context
+            clean_text = response.text[:60000] 
+            return await parse_persona_from_text(f"SOURCE URL: {url}\n\nRAW PROFILE CONTENT:\n{clean_text}")
+            
+        except httpx.HTTPStatusError as e:
+            status_code = e.response.status_code
+            if status_code == 999:
+                status_code = 403
+            raise HTTPException(status_code=status_code, detail=f"LinkedIn server error: {str(e)}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to reach profile: {str(e)}")

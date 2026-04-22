@@ -2,6 +2,9 @@ import { useState, useEffect } from "react"
 import { useUpdateProject, useProjects } from "@/hooks/useTasks"
 import { useMilestones, useMilestoneMutations, useProjectTemplates } from "@/hooks/useMilestones"
 import { useProjectDependencies, useProjectDependencyMutations } from "@/hooks/useProjectDependencies"
+import { useStakeholders } from "@/hooks/useStakeholders"
+import { useOrganizations } from "@/hooks/useOrganizations"
+import { Users, Building2 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +18,8 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
     const [deadline, setDeadline] = useState("")
     const [newMilestoneTitle, setNewMilestoneTitle] = useState("")
     const [selectedDepId, setSelectedDepId] = useState("")
+    const [selectedStakeholderIds, setSelectedStakeholderIds] = useState<string[]>([])
+    const [organizationId, setOrganizationId] = useState("")
 
     const { mutateAsync: updateProject, isPending } = useUpdateProject()
     const { data: milestones } = useMilestones(project?.id)
@@ -23,6 +28,8 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
     const { data: allProjects } = useProjects()
     const { data: dependencies } = useProjectDependencies(project?.id)
     const { add: addDep, remove: removeDep } = useProjectDependencyMutations(project?.id)
+    const { data: stakeholders } = useStakeholders()
+    const { data: organizations } = useOrganizations()
 
     useEffect(() => {
         if (project) {
@@ -32,6 +39,8 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
             setProjectType(project.project_type || "deadline_driven")
             setStartDate(project.start_date ? new Date(project.start_date).toISOString().slice(0, 10) : "")
             setDeadline(project.external_deadline ? new Date(project.external_deadline).toISOString().slice(0, 10) : "")
+            setSelectedStakeholderIds(project.stakeholders?.map((s: any) => s.id) || [])
+            setOrganizationId(project.organization_id || "")
         }
     }, [project])
 
@@ -45,7 +54,9 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
             health_status: healthStatus,
             project_type: projectType,
             start_date: startDate ? new Date(startDate).toISOString() : null,
-            external_deadline: projectType === "deadline_driven" && deadline ? new Date(deadline).toISOString() : null
+            external_deadline: projectType === "deadline_driven" && deadline ? new Date(deadline).toISOString() : null,
+            stakeholder_ids: selectedStakeholderIds,
+            organization_id: organizationId || null
         })
         onClose()
     }
@@ -111,6 +122,51 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
                             <p className="text-[10px] text-muted-foreground italic">Manual override. If empty, AI OS will auto-sequence based on dependencies.</p>
                         </div>
 
+                        {/* Organization Picker */}
+                        <div className="grid gap-2 border-t pt-4">
+                            <label className="text-sm font-bold flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-primary" /> Associated Organization
+                            </label>
+                            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                value={organizationId} onChange={(e) => {
+                                    setOrganizationId(e.target.value);
+                                    // We don't automatically clear here to avoid destructive behavior during edits,
+                                    // but we will filter the suggestions below.
+                                }}>
+                                <option value="">No specific organization (Personal/Direct)</option>
+                                {organizations?.map((org: any) => (
+                                    <option key={org.id} value={org.id}>{org.name}</option>
+                                ))}
+                            </select>
+                            <p className="text-[10px] text-muted-foreground italic">Changing the organization filters the team member suggestions below.</p>
+                        </div>
+
+                        {/* Stakeholder Assignment */}
+                        <div className="grid gap-2 border-t pt-4">
+                            <label className="text-sm font-bold flex items-center gap-2">
+                                <Users className="w-4 h-4 text-primary" /> Project Team (Personas)
+                            </label>
+                            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded-md">
+                                {stakeholders?.filter((st: any) => !organizationId || st.organization_id === organizationId).map((st: any) => (
+                                    <label key={st.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-md border text-[11px] font-bold cursor-pointer transition-all ${selectedStakeholderIds.includes(st.id) ? "bg-primary/10 border-primary text-primary" : "bg-secondary/40 border-transparent text-muted-foreground hover:border-border"}`}>
+                                        <input
+                                            type="checkbox"
+                                            className="hidden"
+                                            checked={selectedStakeholderIds.includes(st.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) setSelectedStakeholderIds([...selectedStakeholderIds, st.id])
+                                                else setSelectedStakeholderIds(selectedStakeholderIds.filter(id => id !== st.id))
+                                            }}
+                                        />
+                                        {st.name}
+                                    </label>
+                                ))}
+                                {(!stakeholders || stakeholders.filter((st: any) => !organizationId || st.organization_id === organizationId).length === 0) && (
+                                    <p className="text-[10px] text-muted-foreground italic">No personas assigned to this organization.</p>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Dependencies Section */}
                         <div className="grid gap-2 border-t pt-4">
                             <div className="flex justify-between items-center">
@@ -155,7 +211,6 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
 
                         {/* Milestones Section */}
                         <div className="border-t pt-4 space-y-3">
-
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h4 className="text-sm font-bold">Milestones</h4>

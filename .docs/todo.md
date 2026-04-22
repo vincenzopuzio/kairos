@@ -14,5 +14,6 @@
 - aggiungere parte di test.. un agente? un prompt?
 - agenti/colleghi
 - analisi what if e scenari
-
+- salvataggio logs da chat
+- aggiungere contesto progetto
 

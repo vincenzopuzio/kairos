@@ -5,16 +5,16 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from api.dependencies import get_db
 from models.domain import Project, ProjectDependency
-from models.schemas import ProjectCreate, ProjectUpdate
+from models.schemas import ProjectCreate, ProjectUpdate, ProjectRead
 from services import projects as projects_service
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
-@router.get("/", response_model=List[Project])
+@router.get("/", response_model=List[ProjectRead])
 async def get_projects(db: AsyncSession = Depends(get_db)):
     return await projects_service.get_all_projects(db)
 
-@router.get("/{project_id}", response_model=Project)
+@router.get("/{project_id}", response_model=ProjectRead)
 async def get_project_by_id(project_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     project = await projects_service.get_project_by_id(db, project_id)
     if not project:

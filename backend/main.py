@@ -7,7 +7,7 @@ import structlog
 from core.config import settings
 from core.database import engine
 from models.domain import SQLModel
-from api.routers import tasks, projects, ai, stakeholders, strategic_goals, timeline, os_settings, knowledge, milestones, principles
+from api.routers import tasks, projects, ai, stakeholders, strategic_goals, timeline, os_settings, knowledge, milestones, principles, interactions, organizations
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -43,7 +43,7 @@ app.add_middleware(
 
 from api.dependencies import get_current_user
 from fastapi import Depends
-from api.routers import auth, tasks, projects, ai, stakeholders, strategic_goals, timeline, os_settings, knowledge, milestones, principles
+from api.routers import auth, tasks, projects, ai, stakeholders, strategic_goals, timeline, os_settings, knowledge, milestones, principles, interactions, organizations
 
 # ... (rest of middlewares)
 
@@ -62,6 +62,8 @@ app.include_router(ai.router, prefix=settings.API_V1_STR, dependencies=protected
 app.include_router(knowledge.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
 app.include_router(milestones.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
 app.include_router(principles.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(interactions.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
+app.include_router(organizations.router, prefix=settings.API_V1_STR, dependencies=protected_deps)
 
 @app.get("/health")
 async def health_check():
