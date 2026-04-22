@@ -17,6 +17,7 @@ __pycache__/
 *.sqlite3
 .env
 .env.*
+backend/backups/
 !.env.example
 logs/
 .coverage
