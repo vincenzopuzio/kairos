@@ -54,7 +54,7 @@ function App() {
       {/* Sidebar Core Component */}
       {isSidebarOpen && (
         <aside className="w-64 border-r border-border bg-card flex flex-col p-4 shrink-0 transition-all duration-300 relative z-20 overflow-y-auto min-h-0">
-          <h2 className="text-xl font-bold tracking-tighter mb-8 text-foreground px-2">AI/OS</h2>
+          <h2 className="text-xl font-bold tracking-tighter mb-8 text-foreground px-2">KairOS</h2>
           <nav className="space-y-1.5 flex-1">
             <button onClick={() => setCurrentView('daily_focus')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'daily_focus' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Daily Focus</button>
             <button onClick={() => setCurrentView('weekly_horizon')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'weekly_horizon' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Weekly Horizon</button>
