@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from models.domain import StatusEnum, HealthEnum, GradeEnum, SeniorityEnum, ProactivityEnum, ProductivityEnum, OrganizationEnum, InteractionEnum, StrategicCategoryEnum, ProjectTypeEnum, ProjectAreaEnum, CircleEnum, TraitCategory, TraitType, SentimentEnum
