@@ -211,6 +211,7 @@ class OsSettingsUpdate(BaseModel):
     day_template_saturday: Optional[str] = None
     day_template_sunday: Optional[str] = None
     template_definitions: Optional[str] = None
+    use_second_api_key: Optional[bool] = None
 
 class WeeklyPlannerRequest(BaseModel):
     max_weekly_combined_hours: Optional[int] = None
