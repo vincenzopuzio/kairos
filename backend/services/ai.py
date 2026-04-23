@@ -440,3 +440,32 @@ async def generate_growth_advisory(traits_with_audits: List[dict]) -> GrowthAdvi
     )
     
     return await run_with_fallback(growth_advisory_agent, prompt)
+
+
+# --- GUIDING PRINCIPLES RESEARCHER ---
+
+from models.schemas import PrincipleResearchResponse
+
+principle_researcher_agent = Agent(
+    model=settings.AI_MODEL,
+    output_type=PrincipleResearchResponse,
+    system_prompt=(
+        "You are a Strategic Philosopher and Mental Model Architect. "
+        "Your task is to take raw research data (web results) and distill it into a set of 'Guiding Principles' for the KairOS Technical Operating System. "
+        "Each principle must be: "
+        "1. HIGH-IMPACT: Address a core strategic or operational challenge.\n"
+        "2. ACTIONABLE: Provide a clear 'Execution Tactic' that can be applied immediately.\n"
+        "3. PITHY: Use sharp, memorable titles and subtitles.\n\n"
+        "Colors to use: emerald (growth/stability), blue (logic/priority), amber (caution/focus), rose (constraint/risk)."
+    )
+)
+
+async def research_guiding_principles(query: str, search_results_summary: str) -> PrincipleResearchResponse:
+    prompt = (
+        f"Research Topic: {query}\n\n"
+        f"RAW RESEARCH DATA:\n{search_results_summary}\n\n"
+        "Distill this research into 3-5 high-impact Guiding Principles. "
+        "Provide a 'strategic_context' summary first, then the array of top_principles."
+    )
+    
+    return await run_with_fallback(principle_researcher_agent, prompt)

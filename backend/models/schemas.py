@@ -316,6 +316,9 @@ class InteractionCreate(BaseModel):
     lesson_learned: Optional[str] = None
     advice_received: Optional[str] = None
 
+    class Config:
+        from_attributes = True
+
 class InteractionRead(BaseModel):
     id: uuid.UUID
     content: str
@@ -327,4 +330,19 @@ class InteractionRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+# --- RESEARCH ---
+class PrincipleResearchRequest(BaseModel):
+    query: str
+
+class ProposedPrinciple(BaseModel):
+    title: str
+    subtitle: str
+    description: str
+    actionable_advice: str
+    color: str
+
+class PrincipleResearchResponse(BaseModel):
+    top_principles: List[ProposedPrinciple]
+    strategic_context: str
 

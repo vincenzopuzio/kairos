@@ -22,3 +22,5 @@ IDEE PER IL FUTURO - ATTENZIONE NON IMPLEMENTARE ORA!
 - gestione chitarra.. come migliorare? inizia a servire un po' di contesto.. o magari un'app specializzata per lo studio?
 
 - ipotizzare uno user journey
+
+- devo smettere di fare attività troppo pratiche, es. se ho un'idea servono agenti che mi sviluppino l'idea e mi facciano una prima bozza di documento o di codice, ecc.

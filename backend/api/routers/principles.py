@@ -4,8 +4,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from api.dependencies import get_db
 from models.domain import GuidingPrinciple
-from models.schemas import GuidingPrincipleCreate, GuidingPrincipleUpdate
+from models.schemas import GuidingPrincipleCreate, GuidingPrincipleUpdate, PrincipleResearchRequest, PrincipleResearchResponse
 from services import principles as principles_service
+from services import ai as ai_service
 
 router = APIRouter(prefix="/principles", tags=["Guiding Principles"])
 
@@ -24,3 +25,7 @@ async def update_principle(principle_id: str, p_in: GuidingPrincipleUpdate, db: 
 @router.delete("/{principle_id}", status_code=204)
 async def delete_principle(principle_id: str, db: AsyncSession = Depends(get_db)):
     await principles_service.delete_principle(db, principle_id)
+
+@router.post("/research", response_model=PrincipleResearchResponse)
+async def research_principles(req: PrincipleResearchRequest):
+    return await ai_service.research_guiding_principles(req.query, "")

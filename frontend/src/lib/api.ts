@@ -50,6 +50,7 @@ export const fetchTasks = (includeBlocked = true, projectId?: string, parentId?:
 };
 
 export const fetchProjects = () => request("/projects/");
+export const researchPrinciples = (query: string) => request("/principles/research", { method: "POST", body: JSON.stringify({ query }) });
 export const createTask = (data: any) => request("/tasks/", { method: "POST", body: JSON.stringify(data) });
 export const updateTask = ({ id, ...data }: any) => request(`/tasks/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 
@@ -109,6 +110,7 @@ export const updatePrinciple = (id: string, data: any) => request(`/principles/$
 export const fetchProjectDetail = (id: string) => request(`/projects/${id}`);
 export const updateProject = (id: string, data: any) => request(`/projects/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 export const createProject = (data: any) => request("/projects/", { method: "POST", body: JSON.stringify(data) });
+export const createGuidingPrinciple = (data: any) => request("/principles/", { method: "POST", body: JSON.stringify(data) });
 export const deleteProject = (id: string) => request(`/projects/${id}`, { method: "DELETE" });
 
 export const fetchInteractions = (stakeholderId: string) => request(`/interactions/stakeholder/${stakeholderId}`);
