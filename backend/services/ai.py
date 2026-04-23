@@ -470,3 +470,41 @@ async def research_guiding_principles(query: str, search_results_summary: str) -
     )
     
     return await run_with_fallback(principle_researcher_agent, prompt)
+# --- TASK INGESTOR AGENT (Smart Ingest) ---
+
+from models.schemas import TaskIngestResponse
+
+task_ingestor_agent = Agent(
+    model=settings.AI_MODEL,
+    output_type=TaskIngestResponse,
+    system_prompt=(
+        "You are a Productivity Architect and Liaison. "
+        "Your goal is to parse unstructured text (notes, Slack, emails) and extract actionable Tasks. "
+        "STRICT MAPPING RULES:\n"
+        "1. Identify distinct, atomic action items.\n"
+        "2. EXTREMELY IMPORTANT: Review the provided Project Catalog. Map each task to the most relevant project based on keywords, context, and organizational logic.\n"
+        "3. If a task does not clearly belong to any project, leave 'suggested_project_id' as NULL. These are 'orphans'.\n"
+        "4. Categorize tasks by Priority (1-4) and Eisenhower Matrix (Importance/Urgency).\n"
+        "5. Provide a sharp reasoning for your project mapping or orphan classification."
+    )
+)
+
+async def ingest_tasks_from_text(db: AsyncSession, text: str) -> TaskIngestResponse:
+    from services.projects import get_all_projects
+    from services.principles import get_all_principles
+    
+    projects = await get_all_projects(db)
+    principles = await get_all_principles(db)
+    
+    principles_context = "\n".join([f"- {p.title}: {p.actionable_advice}" for p in principles])
+    project_catalog = "\n".join([f"- ID: {p.id} | Name: {p.name} | Description: {p.description or 'No desc'}" for p in projects])
+    
+    prompt = (
+        f"Parse the following text into a KairOS execution plan.\n\n"
+        f"GUIDING PRINCIPLES:\n{principles_context}\n\n"
+        f"PROJECT CATALOG:\n{project_catalog}\n\n"
+        f"RAW INPUT TEXT:\n{text}\n\n"
+        "Extract the tasks, map them, and provide a summary of your ingestion strategy."
+    )
+    
+    return await run_with_fallback(task_ingestor_agent, prompt)

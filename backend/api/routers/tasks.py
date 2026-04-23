@@ -5,8 +5,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from api.dependencies import get_db
 from models.domain import Task
-from models.schemas import TaskCreate, TaskUpdate
+from models.schemas import TaskCreate, TaskUpdate, TaskIngestRequest, TaskIngestResponse
 from services import tasks as tasks_service
+from services import ai as ai_service
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -44,3 +45,11 @@ async def update_task(task_id: uuid.UUID, task_in: TaskUpdate, db: AsyncSession 
 async def delete_task(task_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     """Delete a task."""
     await tasks_service.delete_task(db, task_id)
+
+@router.post("/ingest", response_model=TaskIngestResponse)
+async def ingest_tasks(
+    request: TaskIngestRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Parse unstructured text into suggested tasks with project mapping."""
+    return await ai_service.ingest_tasks_from_text(db, request.text)

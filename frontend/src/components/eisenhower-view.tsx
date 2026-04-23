@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, Clock, Zap, Trash2 } from "lucide-react"
 import { EditTaskModal } from "./edit-task-modal"
+import { SmartIngestWizard } from "./smart-ingest-wizard"
 
 export function EisenhowerView() {
     const { data: tasks, isLoading } = useTasks()
@@ -40,11 +41,14 @@ export function EisenhowerView() {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 max-w-7xl mx-auto">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-4xl font-black tracking-tighter uppercase italic">Decision Matrix</h1>
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-500" /> Prioritization Engine / Eisenhower & Pareto
-                </p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-4xl font-black tracking-tighter uppercase italic">Decision Matrix</h1>
+                    <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-amber-500" /> Prioritization Engine / Eisenhower & Pareto
+                    </p>
+                </div>
+                <SmartIngestWizard />
             </div>
 
             <EditTaskModal

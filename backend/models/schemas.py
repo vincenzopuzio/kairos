@@ -347,3 +347,21 @@ class PrincipleResearchResponse(BaseModel):
     top_principles: List[ProposedPrinciple]
     strategic_context: str
 
+# --- TASK INGESTION ---
+class IngestedTask(BaseModel):
+    title: str = Field(description="Distinct action item")
+    description: Optional[str] = Field(description="Explanation of work")
+    priority: int = Field(default=4, ge=1, le=4)
+    importance: int = Field(default=2, ge=1, le=3)
+    urgency: int = Field(default=2, ge=1, le=3)
+    is_frog: bool = Field(default=False)
+    suggested_project_id: Optional[uuid.UUID] = Field(default=None, description="Matching Project UUID if clear")
+    reasoning: str = Field(description="Why this task was extracted and mapped this way")
+
+class TaskIngestRequest(BaseModel):
+    text: str
+
+class TaskIngestResponse(BaseModel):
+    tasks: List[IngestedTask]
+    summary: str
+

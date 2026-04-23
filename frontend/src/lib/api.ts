@@ -53,6 +53,8 @@ export const fetchProjects = () => request("/projects/");
 export const researchPrinciples = (query: string) => request("/principles/research", { method: "POST", body: JSON.stringify({ query }) });
 export const createTask = (data: any) => request("/tasks/", { method: "POST", body: JSON.stringify(data) });
 export const updateTask = ({ id, ...data }: any) => request(`/tasks/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+export const deleteTask = (id: string) => request(`/tasks/${id}`, { method: "DELETE" });
+export const ingestTasks = (text: string) => request("/tasks/ingest", { method: "POST", body: JSON.stringify({ text }) });
 
 export const fetchStakeholders = () => request("/stakeholders/");
 export const createStakeholder = (data: any) => request("/stakeholders/", { method: "POST", body: JSON.stringify(data) });

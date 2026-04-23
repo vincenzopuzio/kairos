@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchTasks, createTask, fetchProjects, updateTask, updateProject, deleteProject as deleteProjectReq, createProject as createProjectReq, fetchProjectDetail } from '@/lib/api'
+import { fetchTasks, createTask, fetchProjects, updateTask, updateProject, deleteProject as deleteProjectReq, createProject as createProjectReq, fetchProjectDetail, deleteTask as deleteTaskReq, ingestTasks } from '@/lib/api'
 
 export function useTasks(enabled = true, includeBlocked = true, projectId?: string, parentId?: string) {
     return useQuery({
@@ -70,5 +70,21 @@ export function useCreateProject() {
     return useMutation({
         mutationFn: createProjectReq,
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] })
+    })
+}
+
+export function useDeleteTask() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: deleteTaskReq,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tasks'] })
+        }
+    })
+}
+
+export function useIngestTasks() {
+    return useMutation({
+        mutationFn: ingestTasks,
     })
 }
