@@ -464,7 +464,8 @@ async def research_guiding_principles(query: str, search_results_summary: str) -
     prompt = (
         f"Research Topic: {query}\n\n"
         f"RAW RESEARCH DATA:\n{search_results_summary}\n\n"
-        "Distill this research into 3-5 high-impact Guiding Principles. "
+        "Distill this research into EXACTLY 4 high-impact Guiding Principles. "
+        "Each principle must be distinct and provide unique strategic value. "
         "Provide a 'strategic_context' summary first, then the array of top_principles."
     )
     

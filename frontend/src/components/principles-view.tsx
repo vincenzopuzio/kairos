@@ -1,30 +1,37 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { usePrinciples } from "@/hooks/usePrinciples"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Loader2, Search, Plus, Sparkles, AlertTriangle, CheckCircle2 } from "lucide-react"
+import { Loader2, Search, Sparkles, CheckCircle2 } from "lucide-react"
 
 export function PrinciplesView() {
     const { principles, isLoading, research, createPrinciple } = usePrinciples();
     const [searchQuery, setSearchQuery] = useState("");
     const [researchResults, setResearchResults] = useState<any>(null);
+    const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const handleResearch = async () => {
         if (!searchQuery) return;
         const result = await research.mutateAsync(searchQuery);
         setResearchResults(result);
+        setSelectedIndexes(result.top_principles.map((_: any, i: number) => i)); // Default select all
     };
 
-    const handleImport = async (principle: any) => {
-        await createPrinciple.mutateAsync(principle);
-        // Remove from local results list after import
-        setResearchResults((prev: any) => ({
-            ...prev,
-            top_principles: prev.top_principles.filter((p: any) => p.title !== principle.title)
-        }));
+    const handleApprove = async () => {
+        const toSave = researchResults.top_principles.filter((_: any, i: number) => selectedIndexes.includes(i));
+        for (const p of toSave) {
+            await createPrinciple.mutateAsync(p);
+        }
+        setIsDialogOpen(false);
+    };
+
+    const toggleSelection = (idx: number) => {
+        setSelectedIndexes(prev =>
+            prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+        );
     };
 
     if (isLoading) {
@@ -96,24 +103,27 @@ export function PrinciplesView() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-2">Proposed Adaptations</h4>
+                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 flex justify-between items-center">
+                                            Proposed Adaptations
+                                            <span className="text-[10px] lowercase font-normal italic">{selectedIndexes.length} selected</span>
+                                        </h4>
                                         {researchResults.top_principles.map((p: any, idx: number) => (
-                                            <Card key={idx} className="border-primary/20 bg-primary/5 hover:border-primary/40 transition-colors group">
-                                                <CardHeader className="py-4">
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <CardTitle className="text-lg">{p.title}</CardTitle>
-                                                            <CardDescription className="font-bold tracking-wider uppercase text-[10px]">{p.subtitle}</CardDescription>
-                                                        </div>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="gap-2 border-primary/30 hover:bg-primary/10"
-                                                            onClick={() => handleImport(p)}
-                                                        >
-                                                            <Plus className="w-3 h-3" />
-                                                            Import
-                                                        </Button>
+                                            <Card
+                                                key={idx}
+                                                className={`transition-all duration-300 border shadow-none cursor-pointer group ${selectedIndexes.includes(idx)
+                                                    ? "border-primary/40 bg-primary/10"
+                                                    : "border-border/50 bg-background/50 opacity-60 grayscale hover:grayscale-0 hover:opacity-100"
+                                                    }`}
+                                                onClick={() => toggleSelection(idx)}
+                                            >
+                                                <CardHeader className="py-4 flex flex-row items-center gap-4 space-y-0">
+                                                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${selectedIndexes.includes(idx) ? "bg-primary border-primary" : "border-muted-foreground/30"
+                                                        }`}>
+                                                        {selectedIndexes.includes(idx) && <CheckCircle2 className="w-3 h-3 text-primary-foreground" />}
+                                                    </div>
+                                                    <div className="flex-grow">
+                                                        <CardTitle className="text-lg">{p.title}</CardTitle>
+                                                        <CardDescription className="font-bold tracking-wider uppercase text-[10px]">{p.subtitle}</CardDescription>
                                                     </div>
                                                 </CardHeader>
                                                 <CardContent className="py-0 pb-4 space-y-3">
@@ -124,11 +134,18 @@ export function PrinciplesView() {
                                                 </CardContent>
                                             </Card>
                                         ))}
-                                        {researchResults.top_principles.length === 0 && (
-                                            <div className="text-center py-6 text-muted-foreground italic text-sm">
-                                                All principles from this research have been imported.
-                                            </div>
-                                        )}
+
+                                        <div className="pt-6 border-t border-border/50 flex justify-end gap-3 sticky bottom-0 bg-background pb-2">
+                                            <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                                            <Button
+                                                onClick={handleApprove}
+                                                disabled={selectedIndexes.length === 0 || createPrinciple.isPending}
+                                                className="px-8 font-bold"
+                                            >
+                                                {createPrinciple.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                                                Approve {selectedIndexes.length} Principles
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
