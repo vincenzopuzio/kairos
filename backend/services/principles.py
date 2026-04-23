@@ -14,9 +14,9 @@ async def get_principle_by_id(db: AsyncSession, principle_id: str) -> Optional[G
     return await db.get(GuidingPrinciple, principle_id)
 
 async def create_principle(db: AsyncSession, p_in: GuidingPrincipleCreate) -> GuidingPrinciple:
-    db_p = GuidingPrinciple.model_validate(p_in)
+    p_data = p_in.model_dump()
     
-    if not db_p.id:
+    if not p_data.get("id"):
         # Generate slug from title
         import re
         base_slug = re.sub(r'[^a-zA-Z0-9]', '-', p_in.title.lower())
@@ -27,8 +27,9 @@ async def create_principle(db: AsyncSession, p_in: GuidingPrincipleCreate) -> Gu
         while await db.get(GuidingPrinciple, slug):
             slug = f"{base_slug}-{counter}"
             counter += 1
-        db_p.id = slug
+        p_data["id"] = slug
 
+    db_p = GuidingPrinciple.model_validate(p_data)
     db.add(db_p)
     await db.commit()
     await db.refresh(db_p)
