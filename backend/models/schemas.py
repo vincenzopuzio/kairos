@@ -129,6 +129,18 @@ class StakeholderCreate(BaseModel):
     general_description: str = ""
     organization_id: Optional[uuid.UUID] = None
 
+class StakeholderRead(BaseModel):
+    id: uuid.UUID
+    name: str
+    role: str
+    company: str
+    seniority: SeniorityEnum
+    interaction_type: InteractionEnum
+    can_delegate: bool
+    
+    class Config:
+        from_attributes = True
+
 class StakeholderUpdate(BaseModel):
     name: Optional[str] = None
     role: Optional[str] = None
@@ -311,7 +323,7 @@ class InteractionRead(BaseModel):
     lesson_learned: Optional[str] = None
     advice_received: Optional[str] = None
     created_at: datetime
-    stakeholders: List[dict] = []
+    stakeholders: List[StakeholderRead] = []
 
     class Config:
         from_attributes = True
