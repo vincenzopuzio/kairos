@@ -5,6 +5,7 @@ import { useProjectDependencies } from "@/hooks/useProjectDependencies"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { EditProjectModal } from "./edit-project-modal"
+import { ProjectAssessmentModal } from "./project-assessment-modal"
 
 function ProjectStats({ stats }: { stats?: any }) {
     if (!stats || stats.total === 0) return null
@@ -83,6 +84,7 @@ export function ProjectsView() {
     const { data: projects, isLoading } = useProjects(true)
     const { mutate: deleteProject } = useDeleteProject()
     const [editingProject, setEditingProject] = useState<any>(null)
+    const [assessingProject, setAssessingProject] = useState<any>(null)
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
     const setCurrentView = useAppStore(state => state.setCurrentView)
     const setSelectedProjectId = useAppStore(state => state.setSelectedProjectId)
@@ -119,9 +121,14 @@ export function ProjectsView() {
 
             {!isLoading && Object.entries(groupedProjects).map(([orgName, orgProjects]: [string, any]) => (
                 <div key={orgName} className="space-y-6 pb-8 border-b last:border-0 border-dashed border-border/60">
-                    <h2 className="text-2xl font-black flex items-center gap-3 mt-4">
-                        <span className="text-lg bg-primary/10 text-primary p-2 rounded-md">🏢</span>
-                        {orgName}
+                    <h2 className="text-2xl font-black flex items-center justify-between mt-4">
+                        <div className="flex items-center gap-3">
+                            <span className="text-lg bg-primary/10 text-primary p-2 rounded-md">🏢</span>
+                            {orgName}
+                        </div>
+                        <Button size="sm" variant="ghost" className="text-[10px] font-black uppercase tracking-widest border border-dashed hover:bg-accent/10 hover:text-accent hover:border-accent">
+                            Review Domain Portfolio
+                        </Button>
                     </h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {orgProjects.map((p: any) => (
@@ -135,6 +142,9 @@ export function ProjectsView() {
                                                 p.health_status === 'at_risk' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                                                     'bg-destructive/10 text-destructive border-destructive/20'
                                                 }`}>{p.health_status.replace('_', ' ')}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border bg-secondary/80 text-secondary-foreground border-border/40">
+                                                {p.category === 'company' ? '🏢 Corp' : p.category === 'personal' ? '🏠 Pers' : p.category === 'learning' ? '📚 Edu' : '⚙️ Misc'}
+                                            </span>
                                             {p.project_type === 'evergreen' && (
                                                 <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border bg-emerald-500/10 text-emerald-600 border-emerald-500/20">🌱 Evergreen</span>
                                             )}
@@ -151,10 +161,17 @@ export function ProjectsView() {
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
                                                 TASK
                                             </button>
-                                            <button onClick={() => setEditingProject(p)} className="p-1 hover:bg-secondary rounded text-muted-foreground hover:text-foreground transition-colors" title="Edit">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setAssessingProject(p) }}
+                                                className="p-1 hover:bg-accent/10 rounded text-muted-foreground hover:text-accent transition-colors"
+                                                title="Record Assessment Moment"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                                            </button>
+                                            <button onClick={(e) => { e.stopPropagation(); setEditingProject(p) }} className="p-1 hover:bg-secondary rounded text-muted-foreground hover:text-foreground transition-colors" title="Edit">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg>
                                             </button>
-                                            <button onClick={() => setConfirmDeleteId(p.id)} className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors" title="Delete">
+                                            <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(p.id) }} className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors" title="Delete">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
                                             </button>
                                         </div>
@@ -191,6 +208,20 @@ export function ProjectsView() {
                                         </div>
                                     )}
 
+                                    {p.traits && p.traits.length > 0 && (
+                                        <div className="pt-3 border-t border-dashed">
+                                            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest block mb-2">Growth Domains</span>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {p.traits.map((tr: any) => (
+                                                    <span key={tr.id} className="text-[9px] font-black bg-accent/20 text-accent-foreground px-2 py-0.5 rounded border border-accent/20 uppercase flex items-center gap-1">
+                                                        <span className={tr.trait_type === 'technical' ? "text-blue-400" : "text-amber-400"}>●</span>
+                                                        {tr.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Confirm delete inline */}
                                     {confirmDeleteId === p.id && (
                                         <div className="mt-2 p-2 rounded-md border border-destructive/40 bg-destructive/5 space-y-2">
@@ -215,6 +246,7 @@ export function ProjectsView() {
             ))}
 
             <EditProjectModal project={editingProject} onClose={() => setEditingProject(null)} />
+            <ProjectAssessmentModal project={assessingProject} onClose={() => setAssessingProject(null)} />
         </div>
     )
 }

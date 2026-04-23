@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 
 interface AppState {
-    currentView: 'daily_focus' | 'principles' | 'projects' | 'personas' | 'weekly_horizon' | 'mid_term_horizon' | 'roadmap' | 'settings' | 'knowledge_base' | 'project_detail' | 'strategic_chat' | 'strategic_journal';
-    setCurrentView: (view: 'daily_focus' | 'principles' | 'projects' | 'personas' | 'weekly_horizon' | 'mid_term_horizon' | 'roadmap' | 'settings' | 'knowledge_base' | 'project_detail' | 'strategic_chat' | 'strategic_journal') => void;
+    currentView: 'daily_focus' | 'principles' | 'projects' | 'personas' | 'weekly_horizon' | 'mid_term_horizon' | 'roadmap' | 'settings' | 'knowledge_base' | 'project_detail' | 'strategic_chat' | 'strategic_journal' | 'self_mirror' | 'eisenhower';
+    setCurrentView: (view: 'daily_focus' | 'principles' | 'projects' | 'personas' | 'weekly_horizon' | 'mid_term_horizon' | 'roadmap' | 'settings' | 'knowledge_base' | 'project_detail' | 'strategic_chat' | 'strategic_journal' | 'self_mirror' | 'eisenhower') => void;
     isSidebarOpen: boolean;
     toggleSidebar: () => void;
     commandBarOpen: boolean;

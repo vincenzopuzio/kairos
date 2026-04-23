@@ -36,7 +36,7 @@ class DecomposeResult(BaseModel):
     sub_tasks: List[AtomicSubTask]
 
 gap_filler_agent = Agent(
-    model='google-gla:gemini-2.5-flash',
+    model=settings.AI_MODEL,
     output_type=DecomposeResult,
     system_prompt=(
         "You are an elite Technical Architect. "
@@ -74,7 +74,7 @@ class PlannerResult(BaseModel):
     schedule: List[ScheduleBlock]
 
 planner_agent = Agent(
-    model='google-gla:gemini-2.5-flash',
+    model=settings.AI_MODEL,
     output_type=PlannerResult,
     system_prompt=(
         "You are a hyper-efficient Personal AI-OS orchestrating a Technical Lead's day. "
@@ -121,7 +121,7 @@ class WeeklyPlannerResult(BaseModel):
     days: List[WeeklyDayPlan]
 
 weekly_planner_agent = Agent(
-    model='google-gla:gemini-2.5-flash',
+    model=settings.AI_MODEL,
     output_type=WeeklyPlannerResult,
     system_prompt=(
         "You are an elite Technical Operating System managing burnout and capacity. "
@@ -200,7 +200,7 @@ class QuarterlyRoadmapResult(BaseModel):
     months: List[QuarterlyMonthBlock]
 
 quarterly_planner_agent = Agent(
-    model='google-gla:gemini-2.5-flash',
+    model=settings.AI_MODEL,
     output_type=QuarterlyRoadmapResult,
     system_prompt=(
         "You are a Strategic Architect managing a 1-6 month OKR roadmap. "
@@ -253,7 +253,7 @@ class KbSearchResult(BaseModel):
     cited_entry_titles: List[str] = Field(description="Titles of the Knowledge Base entries that were most relevant to the answer.")
 
 kb_agent = Agent(
-    model='google-gla:gemini-2.5-flash',
+    model=settings.AI_MODEL,
     output_type=KbSearchResult,
     system_prompt=(
         "You are a personal Knowledge Management AI. "
@@ -292,7 +292,7 @@ class CoachingResult(BaseModel):
     suggested_response: Optional[str] = Field(description="A word-for-word quote or script to use in the next interaction.")
 
 workplace_coaching_agent = Agent(
-    model='google-gla:gemini-2.5-flash',
+    model=settings.AI_MODEL,
     output_type=CoachingResult,
     system_prompt=(
         "You are an elite Executive Coach specializing in high-stakes workplace relationships. "
@@ -349,7 +349,7 @@ class PersonaParseResult(BaseModel):
     interaction_type: str = Field(description="One of: cooperate, support, oversee, challenge")
 
 persona_importer_agent = Agent(
-    model='google-gla:gemini-2.5-flash',
+    model=settings.AI_MODEL,
     output_type=PersonaParseResult,
     system_prompt=(
         "You are an expert Talent Sourcer and Organizational Psychologist. "
@@ -401,3 +401,42 @@ async def fetch_persona_from_url(url: str) -> PersonaParseResult:
             raise HTTPException(status_code=status_code, detail=f"LinkedIn server error: {str(e)}")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to reach profile: {str(e)}")
+
+
+# --- GROWTH ADVISORY AGENT (Self-Mirror Insight) ---
+
+class GrowthTask(BaseModel):
+    title: str
+    description: str
+    priority: int
+
+class GrowthAdvisoryResult(BaseModel):
+    strategic_insight: str = Field(description="A deep, professional insight into the user's current growth trajectory.")
+    suggested_tasks: List[GrowthTask] = Field(description="Concrete actions to take to improve specific traits.")
+
+growth_advisory_agent = Agent(
+    model=settings.AI_MODEL,
+    output_type=GrowthAdvisoryResult,
+    system_prompt=(
+        "You are an elite Performance Coach and Strategic Advisor. "
+        "Your goal is to analyze a user's 'Personal Mirror' (Strengths and Weaknesses) and their recent reflection audits. "
+        "Identify the most critical 'Growth Levers'—traits that have high impact but potentially low current ratings. "
+        "Suggest concrete, actionable tasks that can be tracked in a 'Personal Growth' Epic. "
+        "Be direct, insightful, and architecturally focused."
+    )
+)
+
+async def generate_growth_advisory(traits_with_audits: List[dict]) -> GrowthAdvisoryResult:
+    traits_context = "\n".join([
+        f"- {t['name']} ({t['category']}) | Impact: {t['impact']}/5 | Current Rating: {t['current_rating'] or 'N/A'}\n"
+        f"  Last Audit: {t['audits'][0]['summary'] if t['audits'] else 'No audits yet.'}"
+        for t in traits_with_audits
+    ])
+    
+    prompt = (
+        "Analyze my Personal Trait Ledger and provide a strategic growth roadmap.\n"
+        f"TRAIT LEDGER:\n{traits_context}\n\n"
+        "Provide your strategic insight and suggest 2-3 high-impact growth tasks."
+    )
+    
+    return await run_with_fallback(growth_advisory_agent, prompt)

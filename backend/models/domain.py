@@ -29,6 +29,12 @@ class ProjectTypeEnum(str, Enum):
     deadline_driven = "deadline_driven"
     evergreen = "evergreen"
 
+class ProjectAreaEnum(str, Enum):
+    company = "company"
+    personal = "personal"
+    learning = "learning"
+    other = "other"
+
 class ProactivityEnum(str, Enum):
     low = "low"
     medium = "medium"
@@ -71,6 +77,15 @@ class SentimentEnum(str, Enum):
     tense = "tense"
     hostile = "hostile"
 
+class TraitCategory(str, Enum):
+    strength = "strength"
+    weakness = "weakness"
+    disaster = "disaster"
+
+class TraitType(str, Enum):
+    general = "general"
+    technical = "technical"
+
 class User(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     email: str = Field(unique=True, index=True)
@@ -96,6 +111,11 @@ class StakeholderInteraction(SQLModel, table=True):
 class ProjectStakeholderLink(SQLModel, table=True):
     project_id: uuid.UUID = Field(foreign_key="project.id", primary_key=True, ondelete="CASCADE")
     stakeholder_id: uuid.UUID = Field(foreign_key="stakeholder.id", primary_key=True, ondelete="CASCADE")
+
+class ProjectTraitLink(SQLModel, table=True):
+    """Many-to-many link between projects and personal growth traits."""
+    project_id: uuid.UUID = Field(foreign_key="project.id", ondelete="CASCADE", primary_key=True)
+    trait_id: uuid.UUID = Field(foreign_key="personaltrait.id", ondelete="CASCADE", primary_key=True)
 
 class Organization(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -145,6 +165,7 @@ class Project(SQLModel, table=True):
     start_date: Optional[datetime] = Field(default=None)
     external_deadline: Optional[datetime] = Field(default=None)  # None for evergreen projects
     organization_id: Optional[uuid.UUID] = Field(default=None, foreign_key="organization.id", ondelete="SET NULL")
+    category: ProjectAreaEnum = Field(default=ProjectAreaEnum.personal)
     created_at: datetime = Field(default_factory=utc_now)
 
     # Relationships
@@ -152,6 +173,8 @@ class Project(SQLModel, table=True):
     org: Optional[Organization] = Relationship(back_populates="projects")
     tasks: List["Task"] = Relationship(back_populates="project")
     milestones: List["Milestone"] = Relationship(back_populates="project")
+    traits: List["PersonalTrait"] = Relationship(back_populates="projects", link_model=ProjectTraitLink)
+    assessments: List["ProjectAssessment"] = Relationship(back_populates="project")
 
 class ProjectTemplate(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -181,6 +204,9 @@ class Task(SQLModel, table=True):
     description: Optional[str] = Field(default=None)
     status: StatusEnum = Field(default=StatusEnum.todo)
     priority: int = Field(default=4, ge=1, le=4)
+    importance: int = Field(default=2, ge=1, le=3)
+    urgency: int = Field(default=2, ge=1, le=3)
+    is_frog: bool = Field(default=False)
     deadline: Optional[datetime] = Field(default=None)
     project_id: Optional[uuid.UUID] = Field(default=None, foreign_key="project.id", ondelete="CASCADE")
     project: Optional["Project"] = Relationship(back_populates="tasks")
@@ -233,6 +259,36 @@ class KnowledgeEntry(SQLModel, table=True):
     source_url: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
+
+class PersonalTrait(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(index=True)
+    category: TraitCategory = Field(default=TraitCategory.strength)
+    trait_type: TraitType = Field(default=TraitType.general)
+    impact: int = Field(default=3, ge=1, le=5) # 1-5 scale
+    description: Optional[str] = Field(default=None)
+    created_at: datetime = Field(default_factory=utc_now)
+    
+    # Relationships
+    audits: List["ReflectionAudit"] = Relationship(back_populates="trait")
+    projects: List[Project] = Relationship(back_populates="traits", link_model=ProjectTraitLink)
+
+class ReflectionAudit(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    trait_id: uuid.UUID = Field(foreign_key="personaltrait.id", ondelete="CASCADE")
+    trait: PersonalTrait = Relationship(back_populates="audits")
+    rating: int = Field(ge=1, le=5)
+    summary: str = Field()
+    created_at: datetime = Field(default_factory=utc_now)
+
+class ProjectAssessment(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    project_id: uuid.UUID = Field(foreign_key="project.id", ondelete="CASCADE")
+    project: Project = Relationship(back_populates="assessments")
+    summary: str = Field()
+    lessons_learned: str = Field()
+    rating: int = Field(ge=1, le=5)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 

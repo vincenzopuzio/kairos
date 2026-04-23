@@ -17,3 +17,4 @@
 - salvataggio logs da chat
 - aggiungere contesto progetto
 
+- gestione chitarra.. come migliorare? inizia a servire un po' di contesto.. o magari un'app specializzata per lo studio?

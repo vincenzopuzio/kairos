@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from models.domain import StatusEnum, HealthEnum, GradeEnum, SeniorityEnum, ProactivityEnum, ProductivityEnum, OrganizationEnum, InteractionEnum, StrategicCategoryEnum, ProjectTypeEnum, CircleEnum
+from models.domain import StatusEnum, HealthEnum, GradeEnum, SeniorityEnum, ProactivityEnum, ProductivityEnum, OrganizationEnum, InteractionEnum, StrategicCategoryEnum, ProjectTypeEnum, ProjectAreaEnum, CircleEnum, TraitCategory, TraitType
 from typing import List
 import uuid
 
@@ -20,6 +20,9 @@ class TaskCreate(BaseModel):
     description: Optional[str] = None
     status: StatusEnum = StatusEnum.todo
     priority: int = 4
+    importance: int = 2
+    urgency: int = 2
+    is_frog: bool = False
     deadline: Optional[datetime] = None
     project_id: Optional[uuid.UUID] = None
     milestone_id: Optional[uuid.UUID] = None
@@ -32,6 +35,9 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[StatusEnum] = None
     priority: Optional[int] = None
+    importance: Optional[int] = None
+    urgency: Optional[int] = None
+    is_frog: Optional[bool] = None
     deadline: Optional[datetime] = None
     project_id: Optional[uuid.UUID] = None
     milestone_id: Optional[uuid.UUID] = None
@@ -47,7 +53,9 @@ class ProjectCreate(BaseModel):
     start_date: Optional[datetime] = None
     external_deadline: Optional[datetime] = None
     stakeholder_ids: Optional[List[uuid.UUID]] = None
+    trait_ids: Optional[List[uuid.UUID]] = None
     organization_id: Optional[uuid.UUID] = None
+    category: ProjectAreaEnum = ProjectAreaEnum.personal
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
@@ -57,7 +65,9 @@ class ProjectUpdate(BaseModel):
     start_date: Optional[datetime] = None
     external_deadline: Optional[datetime] = None
     stakeholder_ids: Optional[List[uuid.UUID]] = None
+    trait_ids: Optional[List[uuid.UUID]] = None
     organization_id: Optional[uuid.UUID] = None
+    category: Optional[ProjectAreaEnum] = None
 
 class ProjectTaskStats(BaseModel):
     todo: int = 0
@@ -79,6 +89,7 @@ class ProjectRead(BaseModel):
     start_date: Optional[datetime] = None
     external_deadline: Optional[datetime] = None
     organization_id: Optional[uuid.UUID] = None
+    category: ProjectAreaEnum
     created_at: datetime
     task_stats: Optional[ProjectTaskStats] = None
     milestone_stats: Optional[ProjectMilestoneStats] = None
@@ -86,6 +97,7 @@ class ProjectRead(BaseModel):
     # but usually schemas are fine.
     org: Optional[dict] = None
     stakeholders: List[dict] = []
+    traits: List[dict] = []
 
     class Config:
         from_attributes = True
@@ -230,4 +242,57 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+# --- SELF-MIRROR (Personal Growth) ---
+class TraitBase(BaseModel):
+    name: str
+    category: TraitCategory
+    trait_type: TraitType
+    impact: int
+    description: Optional[str] = None
+
+class TraitCreate(TraitBase):
+    pass
+
+class TraitUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[TraitCategory] = None
+    trait_type: Optional[TraitType] = None
+    impact: Optional[int] = None
+    description: Optional[str] = None
+
+class TraitRead(TraitBase):
+    id: uuid.UUID
+    created_at: datetime
+    projects: List[dict] = []
+
+class AuditBase(BaseModel):
+    trait_id: uuid.UUID
+    rating: int
+    summary: str
+
+class AuditCreate(AuditBase):
+    pass
+
+class AuditRead(AuditBase):
+    id: uuid.UUID
+    created_at: datetime
+
+class TraitDetailRead(TraitRead):
+    audits: List[AuditRead] = []
+    current_rating: Optional[int] = None
+    last_audit_at: Optional[datetime] = None
+
+class AssessmentCreate(BaseModel):
+    project_id: uuid.UUID
+    summary: str
+    lessons_learned: str
+    rating: int
+
+class AssessmentRead(AssessmentCreate):
+    id: uuid.UUID
+    created_at: datetime
+
+class ProjectDetailRead(ProjectRead):
+    assessments: List[AssessmentRead] = []
 

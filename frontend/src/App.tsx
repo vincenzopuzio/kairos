@@ -17,6 +17,8 @@ import { StrategicChatView } from './components/chat-view'
 import { useTasks } from './hooks/useTasks'
 import { LoginView } from './components/login-view'
 import { StrategicJournalView } from './components/strategic-journal-view'
+import { SelfMirrorView } from './components/self-mirror-view'
+import { EisenhowerView } from './components/eisenhower-view'
 
 function App() {
   const currentView = useAppStore(state => state.currentView)
@@ -57,15 +59,19 @@ function App() {
           <h2 className="text-xl font-bold tracking-tighter mb-8 text-foreground px-2">KairOS</h2>
           <nav className="space-y-1.5 flex-1">
             <button onClick={() => setCurrentView('daily_focus')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'daily_focus' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Daily Focus</button>
+            <button onClick={() => setCurrentView('eisenhower')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'eisenhower' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Eisenhower Matrix</button>
             <button onClick={() => setCurrentView('weekly_horizon')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'weekly_horizon' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Weekly Horizon</button>
             <button onClick={() => setCurrentView('mid_term_horizon')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'mid_term_horizon' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Mid-Term Horizon</button>
             <button onClick={() => setCurrentView('roadmap')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'roadmap' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Global Roadmap</button>
-            <button onClick={() => setCurrentView('personas')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'personas' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Teammate Personas</button>
-            <button onClick={() => setCurrentView('principles')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'principles' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Guiding Principles</button>
-            <button onClick={() => setCurrentView('projects')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'projects' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Project Matrix</button>
-            <button onClick={() => setCurrentView('knowledge_base')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'knowledge_base' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>🧠 Knowledge Base</button>
-            <button onClick={() => setCurrentView('strategic_chat')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all border-l-2 border-primary/40 ${currentView === 'strategic_chat' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>⚡ Strategic Link</button>
-            <button onClick={() => setCurrentView('strategic_journal')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all border-l-2 border-amber-500/40 ${currentView === 'strategic_journal' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>🎯 Strategic Journal</button>
+            <button onClick={() => setCurrentView('self_mirror')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'self_mirror' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Self-Mirror</button>
+            <div className="pt-4 pb-2">
+              <button onClick={() => setCurrentView('principles')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'principles' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Guiding Principles</button>
+              <button onClick={() => setCurrentView('personas')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'personas' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Teammate Personas</button>
+              <button onClick={() => setCurrentView('projects')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'projects' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>Project Matrix</button>
+              <button onClick={() => setCurrentView('knowledge_base')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all ${currentView === 'knowledge_base' ? 'bg-secondary text-secondary-foreground font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>🧠 Knowledge Base</button>
+              <button onClick={() => setCurrentView('strategic_chat')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all border-l-2 border-primary/40 ${currentView === 'strategic_chat' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>⚡ Strategic Link</button>
+              <button onClick={() => setCurrentView('strategic_journal')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-medium shadow-sm transition-all border-l-2 border-amber-500/40 ${currentView === 'strategic_journal' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>🎯 Strategic Journal</button>
+            </div>
             <div className="pt-6">
               <button onClick={() => setCurrentView('settings')} className={`w-full flex items-center px-3 py-2.5 text-sm rounded-md font-bold shadow-sm transition-all border ${currentView === 'settings' ? 'bg-primary/10 border-primary/40 text-primary' : 'border-transparent text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>⚙️ OS Configuration</button>
             </div>
@@ -146,6 +152,7 @@ function App() {
             )}
 
             {currentView === 'principles' && <PrinciplesView />}
+            {currentView === 'eisenhower' && <EisenhowerView />}
 
             {currentView === 'weekly_horizon' && <WeeklyHorizonView />}
 
@@ -166,6 +173,8 @@ function App() {
             {currentView === 'strategic_chat' && <StrategicChatView />}
 
             {currentView === 'strategic_journal' && <StrategicJournalView />}
+
+            {currentView === 'self_mirror' && <SelfMirrorView />}
           </div>
         </div>
       </main>

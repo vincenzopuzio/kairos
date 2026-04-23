@@ -4,10 +4,17 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import asynccontextmanager
 from core.config import settings
 
+engine_args = {
+    "echo": False,
+    "future": True
+}
+
+if settings.async_database_url.startswith("sqlite"):
+    engine_args["connect_args"] = {"check_same_thread": False}
+
 engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=False,
-    future=True
+    settings.async_database_url,
+    **engine_args
 )
 
 _SessionFactory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

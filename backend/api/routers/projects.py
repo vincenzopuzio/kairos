@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from api.dependencies import get_db
-from models.domain import Project, ProjectDependency
-from models.schemas import ProjectCreate, ProjectUpdate, ProjectRead
+from models.domain import Project, ProjectDependency, ProjectAssessment, ProjectAreaEnum
+from models.schemas import ProjectCreate, ProjectUpdate, ProjectRead, AssessmentCreate, AssessmentRead, ProjectDetailRead
 from services import projects as projects_service
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 async def get_projects(db: AsyncSession = Depends(get_db)):
     return await projects_service.get_all_projects(db)
 
-@router.get("/{project_id}", response_model=ProjectRead)
+@router.get("/{project_id}", response_model=ProjectDetailRead)
 async def get_project_by_id(project_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     project = await projects_service.get_project_by_id(db, project_id)
     if not project:
@@ -47,3 +47,14 @@ async def add_dependency(project_id: uuid.UUID, depends_on_id: uuid.UUID, db: As
 async def remove_dependency(project_id: uuid.UUID, depends_on_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     await projects_service.remove_dependency(db, project_id, depends_on_id)
 
+# --- Assessment endpoints ---
+
+@router.post("/{project_id}/assessments", response_model=AssessmentRead, status_code=201)
+async def create_assessment(project_id: uuid.UUID, assessment_in: AssessmentCreate, db: AsyncSession = Depends(get_db)):
+    if project_id != assessment_in.project_id:
+        raise HTTPException(status_code=400, detail="Project ID mismatch")
+    return await projects_service.create_assessment(db, assessment_in)
+
+@router.get("/areas/{area}/assessments", response_model=List[AssessmentRead])
+async def get_area_assessments(area: ProjectAreaEnum, db: AsyncSession = Depends(get_db)):
+    return await projects_service.get_assessments_by_area(db, area.value)

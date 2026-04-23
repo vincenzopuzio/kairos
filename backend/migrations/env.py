@@ -5,6 +5,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from sqlmodel import SQLModel
+from core.config import settings
 
 # Import all models so SQLModel.metadata is fully populated
 import models.domain  # noqa: F401
@@ -22,7 +23,7 @@ target_metadata = SQLModel.metadata
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode (no live DB connection needed)."""
-    url = config.get_main_option("sqlalchemy.url")
+    url = settings.async_database_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -46,8 +47,10 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     """Run migrations in 'online' async mode."""
+    configuration = config.get_section(config.config_ini_section, {})
+    configuration["sqlalchemy.url"] = settings.async_database_url
     connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

@@ -24,6 +24,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean, onOp
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [projectType, setProjectType] = useState<"deadline_driven" | "evergreen">("deadline_driven")
+    const [category, setCategory] = useState("personal")
     const [deadline, setDeadline] = useState("")
     const [selectedTemplateId, setSelectedTemplateId] = useState("")
     const [selectedStakeholderIds, setSelectedStakeholderIds] = useState<string[]>([])
@@ -48,6 +49,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean, onOp
             description,
             health_status: "on_track",
             project_type: projectType,
+            category: category,
             organization_id: organizationId || null,
             stakeholder_ids: selectedStakeholderIds
         }
@@ -62,7 +64,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean, onOp
                     if (applyRes.ok) queryClient.invalidateQueries({ queryKey: ['milestones', createdProject.id] })
                 }
                 onOpenChange(false)
-                setName(""); setDescription(""); setDeadline(""); setSelectedTemplateId(""); setProjectType("deadline_driven"); setSelectedStakeholderIds([]); setOrganizationId("")
+                setName(""); setDescription(""); setDeadline(""); setSelectedTemplateId(""); setProjectType("deadline_driven"); setCategory("personal"); setSelectedStakeholderIds([]); setOrganizationId("")
             }
         })
     }
@@ -103,20 +105,25 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean, onOp
                             <p className="text-[10px] text-muted-foreground italic">Linking an organization will filter the team member suggestions below.</p>
                         </div>
 
-                        {/* Project Type Toggle */}
-                        <div className="grid gap-2">
-                            <label className="text-sm font-medium leading-none">Project Archetype</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button type="button" onClick={() => setProjectType("deadline_driven")}
-                                    className={`p-3 rounded-lg border text-sm font-semibold transition-all text-left ${projectType === "deadline_driven" ? "bg-primary/10 border-primary text-primary" : "border-border hover:bg-secondary"}`}>
-                                    <div className="font-bold mb-0.5">📅 Deadline-Driven</div>
-                                    <div className="text-[11px] text-muted-foreground font-normal">Client delivery, certifications, launches</div>
-                                </button>
-                                <button type="button" onClick={() => setProjectType("evergreen")}
-                                    className={`p-3 rounded-lg border text-sm font-semibold transition-all text-left ${projectType === "evergreen" ? "bg-emerald-500/10 border-emerald-500 text-emerald-600" : "border-border hover:bg-secondary"}`}>
-                                    <div className="font-bold mb-0.5">🌱 Evergreen</div>
-                                    <div className="text-[11px] text-muted-foreground font-normal">Training, personal development, ongoing commitments</div>
-                                </button>
+                        {/* Project Type & Category Toggle */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium leading-none">Project Archetype</label>
+                                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    value={projectType} onChange={(e) => setProjectType(e.target.value as any)}>
+                                    <option value="deadline_driven">📅 Deadline-Driven</option>
+                                    <option value="evergreen">🌱 Evergreen</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium leading-none">Operational Area</label>
+                                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    value={category} onChange={(e) => setCategory(e.target.value)}>
+                                    <option value="company">🏢 Company / Prof.</option>
+                                    <option value="personal">🏠 Personal / Local</option>
+                                    <option value="learning">📚 Learning / R&D</option>
+                                    <option value="other">⚙️ Other</option>
+                                </select>
                             </div>
                         </div>
 

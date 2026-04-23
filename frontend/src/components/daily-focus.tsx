@@ -9,8 +9,9 @@ export function DailyFocus() {
     const updateTaskMutation = useUpdateTask()
     const [taskToEdit, setTaskToEdit] = useState<any>(null)
 
-    // Systematically isolate a single high precedence task optimized for deep work
-    const deepWorkTask = tasks?.find((t: any) => t.is_deep_work && (t.status === 'in_progress' || t.status === 'todo'))
+    // Identify the "Frog" - the most critical task today
+    const frogTask = tasks?.find((t: any) => t.is_frog && t.status !== 'done')
+    const deepWorkTask = tasks?.find((t: any) => t.is_deep_work && !t.is_frog && (t.status === 'in_progress' || t.status === 'todo'))
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -27,8 +28,39 @@ export function DailyFocus() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* THE FROG Component - Primary Goal */}
+                {frogTask && (
+                    <Card className="col-span-1 border-emerald-500/50 bg-emerald-500/5 shadow-[0_0_20px_rgba(16,185,129,0.1)] relative overflow-hidden group border-2">
+                        <div className="absolute inset-0 bg-emerald-500/5 opacity-50" />
+                        <CardHeader className="relative z-10 pb-2">
+                            <CardTitle className="flex items-center gap-2 text-emerald-600 uppercase italic tracking-tighter">
+                                <span className="text-2xl animate-bounce">🐸</span> Eat That Frog!
+                            </CardTitle>
+                            <CardDescription className="text-emerald-700/70 font-bold text-[10px] uppercase tracking-widest">
+                                Most Critical Task of the Rotation
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="relative z-10">
+                            <h3 className="text-xl font-black mb-4 tracking-tight text-foreground line-clamp-2">
+                                {frogTask.title}
+                            </h3>
+                            <div className="flex gap-2">
+                                <Button
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 px-3 text-xs"
+                                    onClick={() => updateTaskMutation.mutate({ id: frogTask.id, status: 'done' })}
+                                >
+                                    Done
+                                </Button>
+                                <Button variant="ghost" className="h-8 px-3 text-xs opacity-60 hover:opacity-100" onClick={() => setTaskToEdit(frogTask)}>
+                                    Edit
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Core Deep Work Execution Module */}
-                <Card className="col-span-2 border-primary/50 bg-primary/5 shadow-md relative overflow-hidden">
+                <Card className={`${frogTask ? 'col-span-1 lg:col-span-2' : 'col-span-full lg:col-span-2'} border-primary/50 bg-primary/5 shadow-md relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-primary/5 opacity-50" />
                     <CardHeader className="relative z-10">
                         <CardTitle className="flex items-center gap-2 text-primary">

@@ -4,6 +4,7 @@ import { useMilestones } from "@/hooks/useMilestones"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { useAppStore } from "@/stores/useAppStore"
 
 interface CreateTaskModalProps {
@@ -23,6 +24,9 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
     const [parentId, setParentId] = useState("")
     const [milestoneId, setMilestoneId] = useState("")
     const [priority, setPriority] = useState<number>(3)
+    const [urgency, setUrgency] = useState(2)
+    const [importance, setImportance] = useState(2)
+    const [isFrog, setIsFrog] = useState(false)
     const [isDeepWork, setIsDeepWork] = useState(false)
 
     useEffect(() => {
@@ -47,6 +51,9 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
             milestone_id: milestoneId || undefined,
             parent_id: parentId || undefined,
             priority: Number(priority),
+            urgency,
+            importance,
+            is_frog: isFrog,
             is_deep_work: isDeepWork,
             status: "todo"
         }, {
@@ -54,7 +61,7 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
                 onOpenChange(false)
                 setSelectedProjectId(null)
                 setSelectedParentTaskId(null)
-                setTitle(""); setDescription(""); setProjectId(""); setParentId(""); setMilestoneId(""); setPriority(3); setIsDeepWork(false)
+                setTitle(""); setDescription(""); setProjectId(""); setParentId(""); setMilestoneId(""); setPriority(3); setUrgency(2); setImportance(2); setIsFrog(false); setIsDeepWork(false)
             }
         })
     }
@@ -82,11 +89,12 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
                         </div>
                         <div className="grid gap-2">
                             <label htmlFor="desc" className="text-sm font-medium leading-none">Task Analysis</label>
-                            <Input
+                            <Textarea
                                 id="desc"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Requires heavy analysis of standard replication setups"
+                                placeholder="Details, technical notes, or specific requirements..."
+                                rows={4}
                             />
                         </div>
                         {projects && projects.length > 0 && (
@@ -127,6 +135,40 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
                                 <option value={4}>4 - Background</option>
                             </select>
                         </div>
+                        <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                            <div className="grid gap-2">
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground">Urgency</label>
+                                <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={urgency} onChange={(e) => setUrgency(parseInt(e.target.value))}>
+                                    <option value={1}>Low</option>
+                                    <option value={2}>Medium</option>
+                                    <option value={3}>High</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-2">
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground">Importance</label>
+                                <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={importance} onChange={(e) => setImportance(parseInt(e.target.value))}>
+                                    <option value={1}>Low</option>
+                                    <option value={2}>Medium</option>
+                                    <option value={3}>High</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-2 bg-secondary/30 p-3 rounded-lg border border-border">
+                            <input
+                                type="checkbox"
+                                id="is_frog"
+                                checked={isFrog}
+                                onChange={(e) => setIsFrog(e.target.checked)}
+                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary bg-background"
+                            />
+                            <label htmlFor="is_frog" className="text-sm font-bold flex items-center gap-2 cursor-pointer">
+                                🐸 Eat the Frog (Critical)
+                            </label>
+                        </div>
+
                         <div className="flex items-center gap-2 mt-2 bg-secondary/30 p-3 rounded-lg border border-border">
                             <input
                                 type="checkbox"

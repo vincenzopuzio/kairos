@@ -4,21 +4,25 @@ import { useMilestones, useMilestoneMutations, useProjectTemplates } from "@/hoo
 import { useProjectDependencies, useProjectDependencyMutations } from "@/hooks/useProjectDependencies"
 import { useStakeholders } from "@/hooks/useStakeholders"
 import { useOrganizations } from "@/hooks/useOrganizations"
-import { Users, Building2 } from "lucide-react"
+import { useTraits } from "@/hooks/useSelfMirror"
+import { Users, Building2, Brain } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 
 export function EditProjectModal({ project, onClose }: { project: any, onClose: () => void }) {
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [healthStatus, setHealthStatus] = useState("on_track")
     const [projectType, setProjectType] = useState("deadline_driven")
+    const [category, setCategory] = useState("personal")
     const [startDate, setStartDate] = useState("")
     const [deadline, setDeadline] = useState("")
     const [newMilestoneTitle, setNewMilestoneTitle] = useState("")
     const [selectedDepId, setSelectedDepId] = useState("")
     const [selectedStakeholderIds, setSelectedStakeholderIds] = useState<string[]>([])
+    const [selectedTraitIds, setSelectedTraitIds] = useState<string[]>([])
     const [organizationId, setOrganizationId] = useState("")
 
     const { mutateAsync: updateProject, isPending } = useUpdateProject()
@@ -30,6 +34,7 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
     const { add: addDep, remove: removeDep } = useProjectDependencyMutations(project?.id)
     const { data: stakeholders } = useStakeholders()
     const { data: organizations } = useOrganizations()
+    const { data: traits } = useTraits()
 
     useEffect(() => {
         if (project) {
@@ -37,9 +42,11 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
             setDescription(project.description || "")
             setHealthStatus(project.health_status)
             setProjectType(project.project_type || "deadline_driven")
+            setCategory(project.category || "personal")
             setStartDate(project.start_date ? new Date(project.start_date).toISOString().slice(0, 10) : "")
             setDeadline(project.external_deadline ? new Date(project.external_deadline).toISOString().slice(0, 10) : "")
             setSelectedStakeholderIds(project.stakeholders?.map((s: any) => s.id) || [])
+            setSelectedTraitIds(project.traits?.map((t: any) => t.id) || [])
             setOrganizationId(project.organization_id || "")
         }
     }, [project])
@@ -53,9 +60,11 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
             description,
             health_status: healthStatus,
             project_type: projectType,
+            category: category,
             start_date: startDate ? new Date(startDate).toISOString() : null,
             external_deadline: projectType === "deadline_driven" && deadline ? new Date(deadline).toISOString() : null,
             stakeholder_ids: selectedStakeholderIds,
+            trait_ids: selectedTraitIds,
             organization_id: organizationId || null
         })
         onClose()
@@ -88,7 +97,7 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
                         </div>
                         <div className="grid gap-2">
                             <label className="text-sm font-medium">Abstract Description</label>
-                            <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+                            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="High-level objectives and strategic value..." />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
@@ -106,6 +115,16 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
                                     value={projectType} onChange={(e) => setProjectType(e.target.value)}>
                                     <option value="deadline_driven">📅 Deadline-Driven</option>
                                     <option value="evergreen">🌱 Evergreen</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium">Operational Area</label>
+                                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    value={category} onChange={(e) => setCategory(e.target.value)}>
+                                    <option value="company">🏢 Company / Prof.</option>
+                                    <option value="personal">🏠 Personal / Local</option>
+                                    <option value="learning">📚 Learning / R&D</option>
+                                    <option value="other">⚙️ Other</option>
                                 </select>
                             </div>
                         </div>
@@ -139,6 +158,30 @@ export function EditProjectModal({ project, onClose }: { project: any, onClose: 
                                 ))}
                             </select>
                             <p className="text-[10px] text-muted-foreground italic">Changing the organization filters the team member suggestions below.</p>
+                        </div>
+
+                        {/* Growth Trait Assignment */}
+                        <div className="grid gap-2 border-t pt-4">
+                            <label className="text-sm font-bold flex items-center gap-2">
+                                <Brain className="w-4 h-4 text-accent" /> Growth & Identity Traits
+                            </label>
+                            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded-md bg-secondary/10">
+                                {traits?.map((tr: any) => (
+                                    <label key={tr.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-md border text-[11px] font-bold cursor-pointer transition-all ${selectedTraitIds.includes(tr.id) ? "bg-accent/10 border-accent text-accent-foreground" : "bg-background border-transparent text-muted-foreground hover:border-border"}`}>
+                                        <input
+                                            type="checkbox"
+                                            className="hidden"
+                                            checked={selectedTraitIds.includes(tr.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) setSelectedTraitIds([...selectedTraitIds, tr.id])
+                                                else setSelectedTraitIds(selectedTraitIds.filter(id => id !== tr.id))
+                                            }}
+                                        />
+                                        <span className={tr.trait_type === 'technical' ? "text-blue-500" : "text-amber-500"}>●</span>
+                                        {tr.name}
+                                    </label>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Stakeholder Assignment */}

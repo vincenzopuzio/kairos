@@ -3,11 +3,15 @@ import { useUpdateTask } from "@/hooks/useTasks"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 
 export function EditTaskModal({ task, open, onOpenChange }: { task: any, open: boolean, onOpenChange: (open: boolean) => void }) {
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [priority, setPriority] = useState<number>(3)
+    const [urgency, setUrgency] = useState(2)
+    const [importance, setImportance] = useState(2)
+    const [isFrog, setIsFrog] = useState(false)
     const [status, setStatus] = useState("todo")
     const [isDeepWork, setIsDeepWork] = useState(false)
 
@@ -18,6 +22,9 @@ export function EditTaskModal({ task, open, onOpenChange }: { task: any, open: b
             setTitle(task.title || "")
             setDescription(task.description || "")
             setPriority(task.priority || 3)
+            setUrgency(task.urgency || 2)
+            setImportance(task.importance || 2)
+            setIsFrog(task.is_frog || false)
             setStatus(task.status || "todo")
             setIsDeepWork(task.is_deep_work || false)
         }
@@ -32,6 +39,9 @@ export function EditTaskModal({ task, open, onOpenChange }: { task: any, open: b
             title,
             description,
             priority: Number(priority),
+            urgency,
+            importance,
+            is_frog: isFrog,
             status,
             is_deep_work: isDeepWork
         }, {
@@ -63,6 +73,16 @@ export function EditTaskModal({ task, open, onOpenChange }: { task: any, open: b
                             />
                         </div>
                         <div className="grid gap-2">
+                            <label htmlFor="edit-desc" className="text-sm font-medium leading-none">Task Analysis</label>
+                            <Textarea
+                                id="edit-desc"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="Details, technical notes, or specific requirements..."
+                                rows={4}
+                            />
+                        </div>
+                        <div className="grid gap-2">
                             <label htmlFor="edit-status" className="text-sm font-medium leading-none">Status</label>
                             <select
                                 id="edit-status"
@@ -90,6 +110,40 @@ export function EditTaskModal({ task, open, onOpenChange }: { task: any, open: b
                                 <option value={4}>4 - Background</option>
                             </select>
                         </div>
+                        <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                            <div className="grid gap-2">
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground">Urgency</label>
+                                <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={urgency} onChange={(e) => setUrgency(parseInt(e.target.value))}>
+                                    <option value={1}>Low</option>
+                                    <option value={2}>Medium</option>
+                                    <option value={3}>High</option>
+                                </select>
+                            </div>
+                            <div className="grid gap-2">
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground">Importance</label>
+                                <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    value={importance} onChange={(e) => setImportance(parseInt(e.target.value))}>
+                                    <option value={1}>Low</option>
+                                    <option value={2}>Medium</option>
+                                    <option value={3}>High</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-2 bg-secondary/30 p-3 rounded-lg border border-border">
+                            <input
+                                type="checkbox"
+                                id="edit-is-frog"
+                                checked={isFrog}
+                                onChange={(e) => setIsFrog(e.target.checked)}
+                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary bg-background"
+                            />
+                            <label htmlFor="edit-is-frog" className="text-sm font-bold flex items-center gap-2 cursor-pointer">
+                                🐸 Eat the Frog (Critical)
+                            </label>
+                        </div>
+
                         <div className="flex items-center gap-2 mt-2 bg-secondary/30 p-3 rounded-lg border border-border">
                             <input
                                 type="checkbox"
