@@ -178,7 +178,7 @@ class StrategicGoalUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 class GuidingPrincipleCreate(BaseModel):
-    id: str
+    id: Optional[str] = None
     title: str
     subtitle: str
     description: str
