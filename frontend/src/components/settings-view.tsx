@@ -103,6 +103,21 @@ export function SettingsView() {
                         onChange={(e) => handleChange("template_definitions", e.target.value)}
                         placeholder="Deep work must be > 2 hours. Morning meetings are prohibited..."
                     />
+
+                    <div className="mt-8 pt-6 border-t border-primary/10 flex items-center justify-between">
+                        <div>
+                            <h4 className="text-sm font-bold flex items-center gap-2">
+                                Secondary API Key
+                            </h4>
+                            <p className="text-xs text-muted-foreground mt-1">If enabled, KairOS will prioritize GEMINI_API_KEY_SECOND from your environment.</p>
+                        </div>
+                        <input
+                            type="checkbox"
+                            className="w-5 h-5 accent-primary cursor-pointer"
+                            checked={formData.use_second_api_key || false}
+                            onChange={(e) => handleChange("use_second_api_key", e.target.checked)}
+                        />
+                    </div>
                 </CardContent>
             </Card>
 

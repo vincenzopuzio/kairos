@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     
     # AI Engine Auth
     GEMINI_API_KEY: str | None = None
+    GEMINI_API_KEY_SECOND: str | None = None
     AI_MODEL: str = "google-gla:gemini-2.5-flash"
     
     # DATABASE

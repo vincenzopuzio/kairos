@@ -249,6 +249,7 @@ class OsSettings(SQLModel, table=True):
     day_template_saturday: str = Field(default="Offline")
     day_template_sunday: str = Field(default="Offline")
     template_definitions: str = Field(default="Provide explicit guidelines for your templates. E.g., 'Deep Work begins after 10 AM in contiguous blocks'. The AI will interpret these flexibly.")
+    use_second_api_key: bool = Field(default=False)
     created_at: datetime = Field(default_factory=utc_now)
 
 class KnowledgeEntry(SQLModel, table=True):
