@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCreateTask, useUpdateTask, useCreateProject, useUpdateProject } from "@/hooks/useTasks"
+import { VoiceTrigger } from "./voice-trigger"
 
 interface Message {
     role: 'user' | 'assistant'
@@ -123,21 +124,27 @@ export function StrategicChatView() {
             </div>
 
             <div className="p-6 border-t bg-secondary/10">
-                <div className="flex gap-2 relative">
-                    <Input
-                        placeholder="Ask for guidance or command a plan..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        className="pr-24 h-12 rounded-xl focus-visible:ring-primary shadow-inner"
+                <div className="flex items-center gap-3 relative">
+                    <VoiceTrigger
+                        onTranscript={(text) => setInput(prev => prev + (prev ? " " : "") + text)}
+                        autoCommand={false}
                     />
-                    <Button
-                        onClick={handleSend}
-                        disabled={chatMutation.isPending || !input.trim()}
-                        className="absolute right-1.5 top-1.5 h-9 px-4 rounded-lg font-bold"
-                    >
-                        {chatMutation.isPending ? "Analysing..." : "Send"}
-                    </Button>
+                    <div className="flex-1 relative">
+                        <Input
+                            placeholder="Ask for guidance or command a plan..."
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                            className="pr-24 h-12 rounded-xl focus-visible:ring-primary shadow-inner"
+                        />
+                        <Button
+                            onClick={handleSend}
+                            disabled={chatMutation.isPending || !input.trim()}
+                            className="absolute right-1.5 top-1.5 h-9 px-4 rounded-lg font-bold"
+                        >
+                            {chatMutation.isPending ? "Analysing..." : "Send"}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

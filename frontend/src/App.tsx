@@ -19,6 +19,7 @@ import { LoginView } from './components/login-view'
 import { StrategicJournalView } from './components/strategic-journal-view'
 import { SelfMirrorView } from './components/self-mirror-view'
 import { EisenhowerView } from './components/eisenhower-view'
+import { VoiceTrigger } from './components/voice-trigger'
 
 function App() {
   const currentView = useAppStore(state => state.currentView)
@@ -93,12 +94,15 @@ function App() {
           <div className="flex-1" />
 
           {/* Spotlight Mock Command Trigger */}
-          <div
-            onClick={() => setCommandBarOpen(true)}
-            className="text-sm text-muted-foreground flex items-center bg-muted/40 px-3 py-1.5 rounded-lg cursor-pointer border border-border hover:bg-muted hover:border-border/80 transition-all shadow-sm group"
-          >
-            <span className="mr-8 font-medium group-hover:text-foreground transition-colors">Command AI...</span>
-            <kbd className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded text-muted-foreground border shadow-sm font-semibold">CMD+K</kbd>
+          <div className="flex items-center gap-2">
+            <div
+              onClick={() => setCommandBarOpen(true)}
+              className="text-sm text-muted-foreground flex items-center bg-muted/40 px-3 py-1.5 rounded-lg cursor-pointer border border-border hover:bg-muted hover:border-border/80 transition-all shadow-sm group"
+            >
+              <span className="mr-8 font-medium group-hover:text-foreground transition-colors">Command AI...</span>
+              <kbd className="font-mono text-[10px] bg-background px-1.5 py-0.5 rounded text-muted-foreground border shadow-sm font-semibold">CMD+K</kbd>
+            </div>
+            <VoiceTrigger className="ml-1" />
           </div>
 
           <button
