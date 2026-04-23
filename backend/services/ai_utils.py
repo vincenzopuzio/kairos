@@ -9,6 +9,7 @@ T = TypeVar('T', bound=BaseModel)
 
 PRIMARY_MODEL = 'google-gla:gemini-2.5-flash'
 FALLBACK_MODEL = 'google-gla:gemini-2.0-flash'
+CLAUDE_MODEL = 'anthropic:claude-3-5-sonnet-latest'
 
 async def _get_active_key(db_session: Any) -> str:
     """Helper to determine which API key to use from OsSettings and env."""
@@ -73,13 +74,33 @@ async def run_with_fallback(agent: Agent, prompt: str, deps: Any = None, history
                 if is_quota_error:
                     note = f"🔄 *[Quota Limit Hit: Swapped API Key (...{new_key_suffix}) & Fallback to 2.0-Flash]*"
 
-                if hasattr(output, 'message') and isinstance(output.message, str):
-                    output.message = note + "\n\n" + output.message
-                elif hasattr(output, 'insights') and isinstance(output.insights, str):
-                    output.insights = note + "\n\n" + output.insights
-                
-                return output
+                return _apply_fallback_note(output, note)
             except Exception as fe:
+                # --- TIER 3: CLAUDE FALLBACK ---
+                if settings.CLAUDE_API_KEY:
+                    print(f"🦉 [AI_UTILS] Gemini Exhausted. Final Attempt with {CLAUDE_MODEL}...")
+                    os.environ["ANTHROPIC_API_KEY"] = settings.CLAUDE_API_KEY
+                    try:
+                        result = await agent.run(prompt, deps=deps, message_history=history, model=CLAUDE_MODEL)
+                        output = result.output
+                        note = "🦉 *[CRITICAL FALLBACK: Using Claude-3.5-Sonnet due to Gemini Quota Exhaustion]*"
+                        return _apply_fallback_note(output, note)
+                    except Exception as ce:
+                        print(f"❌ [AI_UTILS] All LLM tiers failed: {str(ce)[:100]}")
+                        raise ce
+                
                 print(f"❌ [AI_UTILS] Fallback Attempt also failed: {str(fe)[:100]}")
                 raise fe
         raise e
+
+def _apply_fallback_note(output: Any, note: str) -> Any:
+    """Injects a diagnostic note into the AI output for visibility."""
+    if hasattr(output, 'message') and isinstance(output.message, str):
+        output.message = note + "\n\n" + output.message
+    elif hasattr(output, 'insights') and isinstance(output.insights, str):
+        output.insights = note + "\n\n" + output.insights
+    elif hasattr(output, 'strategic_insight') and isinstance(output.strategic_insight, str):
+        output.strategic_insight = note + "\n\n" + output.strategic_insight
+    elif hasattr(output, 'reasoning') and isinstance(output.reasoning, str):
+        output.reasoning = note + "\n\n" + output.reasoning
+    return output
