@@ -115,6 +115,7 @@ export const fetchInteractions = (stakeholderId: string) => request(`/interactio
 export const fetchAllInteractions = () => request("/interactions/");
 export const createInteraction = (data: { content: string, stakeholder_ids?: string[], sentiment?: string, lesson_learned?: string }) => request("/interactions/", { method: "POST", body: JSON.stringify(data) });
 export const fetchLessonsLearned = () => request("/interactions/lessons-learned");
+export const deleteInteraction = (id: string) => request(`/interactions/${id}`, { method: "DELETE" });
 export const workplaceCoaching = (stakeholderId: string) => request("/ai/workplace-coaching", { method: "POST", body: JSON.stringify({ stakeholder_id: stakeholderId }) });
 export const parsePersona = (text: string) => request("/ai/parse-persona", { method: "POST", body: JSON.stringify({ text }) });
 export const fetchPersona = (url: string) => request("/ai/fetch-persona", { method: "POST", body: JSON.stringify({ url }) });

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from '@/components/ui/badge';
-import { Loader2, MessageSquare, History, BrainCircuit, Quote, Sparkles, Plus, ChevronRight } from 'lucide-react';
+import { Loader2, MessageSquare, History, BrainCircuit, Quote, Sparkles, Plus, ChevronRight, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface InteractionJournalViewProps {
@@ -17,7 +17,7 @@ interface InteractionJournalViewProps {
 export function InteractionJournalView({ stakeholder, onBack }: InteractionJournalViewProps) {
     const { data: stakeholders } = useStakeholders();
     const { data: interactions, isLoading: isLoadingInteractions } = useInteractions(stakeholder?.id);
-    const { create, getCoaching } = useInteractionMutations(stakeholder?.id);
+    const { create, getCoaching, remove } = useInteractionMutations(stakeholder?.id);
 
     const [newEntry, setNewEntry] = useState('');
     const [sentiment, setSentiment] = useState<'positive' | 'neutral' | 'tense' | 'hostile'>('neutral');
@@ -268,12 +268,21 @@ export function InteractionJournalView({ stakeholder, onBack }: InteractionJourn
                                             {format(new Date(it.created_at), 'PPPp')}
                                         </span>
                                     </div>
-                                    <div className="flex flex-wrap gap-1">
+                                    <div className="flex flex-wrap gap-1 items-center">
                                         {it.stakeholders?.map((st: any) => (
                                             <Badge key={st.id} variant="secondary" className="text-[8px] bg-secondary/50 border-none font-medium">
                                                 {st.name}
                                             </Badge>
                                         ))}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 ml-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onClick={() => remove.mutate(it.id)}
+                                            disabled={remove.isPending}
+                                        >
+                                            {remove.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                                        </Button>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-6 space-y-4">

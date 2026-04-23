@@ -47,3 +47,14 @@ async def get_lessons_learned(
     current_user = Depends(get_current_user)
 ):
     return await interaction_service.get_all_lessons_learned(db)
+
+@router.delete("/{interaction_id}")
+async def delete_interaction(
+    interaction_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    success = await interaction_service.delete_interaction(db, interaction_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Interaction not found")
+    return {"status": "success"}

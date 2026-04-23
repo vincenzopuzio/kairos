@@ -21,15 +21,24 @@ async def create_interaction(
     )
     db.add(interaction)
     await db.flush() # Get the ID
+    interaction_id = interaction.id
     
     for st_id in stakeholder_ids:
-        link = StakeholderInteractionLink(interaction_id=interaction.id, stakeholder_id=st_id)
+        link = StakeholderInteractionLink(interaction_id=interaction_id, stakeholder_id=st_id)
         db.add(link)
         
     await db.commit()
     
-    # Return with stakeholders loaded
-    return await get_all_interactions_by_id(db, interaction.id)
+    # Return with stakeholders loaded using the saved ID
+    return await get_all_interactions_by_id(db, interaction_id)
+
+async def delete_interaction(db: AsyncSession, interaction_id: uuid.UUID) -> bool:
+    interaction = await db.get(StakeholderInteraction, interaction_id)
+    if not interaction:
+        return False
+    await db.delete(interaction)
+    await db.commit()
+    return True
 
 async def get_all_interactions_by_id(db: AsyncSession, interaction_id: uuid.UUID) -> Optional[StakeholderInteraction]:
     statement = select(StakeholderInteraction).where(StakeholderInteraction.id == interaction_id).options(selectinload(StakeholderInteraction.stakeholders))

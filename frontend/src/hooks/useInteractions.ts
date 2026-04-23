@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchInteractions, fetchAllInteractions, createInteraction, fetchLessonsLearned, workplaceCoaching } from "@/lib/api";
+import { fetchInteractions, fetchAllInteractions, createInteraction, fetchLessonsLearned, workplaceCoaching, deleteInteraction } from "@/lib/api";
 
 export function useInteractions(stakeholderId?: string) {
     return useQuery({
@@ -38,5 +38,13 @@ export function useInteractionMutations(stakeholderId?: string) {
         mutationFn: workplaceCoaching
     });
 
-    return { create, getCoaching };
+    const remove = useMutation({
+        mutationFn: deleteInteraction,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['interactions'] });
+            queryClient.invalidateQueries({ queryKey: ['lessons_learned'] });
+        }
+    });
+
+    return { create, getCoaching, remove };
 }
