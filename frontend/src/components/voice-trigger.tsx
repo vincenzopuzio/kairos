@@ -11,7 +11,7 @@ interface VoiceTriggerProps {
 }
 
 export function VoiceTrigger({ onTranscript, autoCommand = true, className }: VoiceTriggerProps) {
-    const { isListening, transcript, start, stop, browserSupportsSpeech } = useSpeechToText({
+    const { isListening, transcript, error, start, stop, browserSupportsSpeech } = useSpeechToText({
         onResult: (text) => {
             if (autoCommand) {
                 const handled = processVoiceCommand(text, useAppStore.getState().setCurrentView);
@@ -28,28 +28,30 @@ export function VoiceTrigger({ onTranscript, autoCommand = true, className }: Vo
 
     return (
         <div className={`relative flex items-center gap-2 ${className}`}>
-            {isListening && (
-                <div className="absolute -inset-1 rounded-full bg-primary/20 animate-ping pointer-events-none" />
+            {(isListening || error) && (
+                <div className={`absolute -inset-1 rounded-full animate-ping pointer-events-none ${error ? 'bg-destructive/20' : 'bg-primary/20'}`} />
             )}
             <Button
                 size="icon"
-                variant={isListening ? "destructive" : "outline"}
+                variant={error ? "ghost" : (isListening ? "destructive" : "outline")}
                 onClick={isListening ? stop : start}
-                className={`relative rounded-full transition-all duration-300 ${isListening ? 'scale-110 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'hover:scale-105 shadow-sm'}`}
-                title={isListening ? "Stop Listening" : "Start Voice Command"}
+                className={`relative rounded-full transition-all duration-300 ${isListening ? 'scale-110 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'hover:scale-105 shadow-sm'} ${error ? 'border-destructive text-destructive' : ''}`}
+                title={error || (isListening ? "Stop Listening" : "Start Voice Command")}
             >
                 {isListening ? (
                     <Mic className="h-4 w-4 animate-pulse" />
                 ) : (
-                    <Mic className="h-4 w-4 text-primary" />
+                    <Mic className={`h-4 w-4 ${error ? 'text-destructive' : 'text-primary'}`} />
                 )}
             </Button>
 
-            {isListening && (
+            {(isListening || error) && (
                 <div className="flex flex-col">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-primary animate-pulse">Listening...</span>
+                    <span className={`text-[8px] font-black uppercase tracking-widest ${error ? 'text-destructive' : 'text-primary animate-pulse'}`}>
+                        {error ? "Error" : "Listening..."}
+                    </span>
                     <span className="text-[10px] font-medium text-muted-foreground italic line-clamp-1 max-w-[120px]">
-                        {transcript || "Speak now..."}
+                        {error || transcript || "Speak now..."}
                     </span>
                 </div>
             )}
