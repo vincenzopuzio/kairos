@@ -1,11 +1,13 @@
-import { useMemo } from "react"
+import { useState, useMemo } from "react"
 import { useTasks, useUpdateTask } from "@/hooks/useTasks"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, Clock, Zap, Trash2 } from "lucide-react"
+import { EditTaskModal } from "./edit-task-modal"
 
 export function EisenhowerView() {
     const { data: tasks, isLoading } = useTasks()
+    const [taskToEdit, setTaskToEdit] = useState<any>(null)
 
     const quadrants = useMemo(() => {
         if (!tasks) return { q1: [], q2: [], q3: [], q4: [] }
@@ -45,6 +47,12 @@ export function EisenhowerView() {
                 </p>
             </div>
 
+            <EditTaskModal
+                task={taskToEdit}
+                open={!!taskToEdit}
+                onOpenChange={(open) => !open && setTaskToEdit(null)}
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Q1: Do First */}
                 <Card className="border-2 border-destructive/30 bg-destructive/5 overflow-hidden">
@@ -58,7 +66,7 @@ export function EisenhowerView() {
                     </CardHeader>
                     <CardContent className="p-3 space-y-2 min-h-[160px]">
                         {quadrants.q1.map((t: any) => (
-                            <TaskItem key={t.id} task={t} color="destructive" />
+                            <TaskItem key={t.id} task={t} color="destructive" onEdit={() => setTaskToEdit(t)} />
                         ))}
                     </CardContent>
                 </Card>
@@ -75,7 +83,7 @@ export function EisenhowerView() {
                     </CardHeader>
                     <CardContent className="p-3 space-y-2 min-h-[160px]">
                         {quadrants.q2.map((t: any) => (
-                            <TaskItem key={t.id} task={t} color="primary" />
+                            <TaskItem key={t.id} task={t} color="primary" onEdit={() => setTaskToEdit(t)} />
                         ))}
                     </CardContent>
                 </Card>
@@ -92,7 +100,7 @@ export function EisenhowerView() {
                     </CardHeader>
                     <CardContent className="p-3 space-y-2 min-h-[160px]">
                         {quadrants.q3.map((t: any) => (
-                            <TaskItem key={t.id} task={t} color="amber" />
+                            <TaskItem key={t.id} task={t} color="amber" onEdit={() => setTaskToEdit(t)} />
                         ))}
                     </CardContent>
                 </Card>
@@ -109,7 +117,7 @@ export function EisenhowerView() {
                     </CardHeader>
                     <CardContent className="p-3 space-y-2 min-h-[160px]">
                         {quadrants.q4.map((t: any) => (
-                            <TaskItem key={t.id} task={t} color="muted" />
+                            <TaskItem key={t.id} task={t} color="muted" onEdit={() => setTaskToEdit(t)} />
                         ))}
                     </CardContent>
                 </Card>
@@ -128,7 +136,7 @@ export function EisenhowerView() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {paretoTasks.map((t: any) => (
-                        <div key={t.id} className="relative group">
+                        <div key={t.id} className="relative group cursor-pointer" onClick={() => setTaskToEdit(t)}>
                             <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
                             <Card className="relative bg-background border-2 border-primary/20 group-hover:border-primary/40 transition-all">
                                 <CardContent className="p-4 flex flex-col gap-3">
@@ -162,12 +170,12 @@ export function EisenhowerView() {
     )
 }
 
-function TaskItem({ task, color }: { task: any, color: string }) {
+function TaskItem({ task, color, onEdit }: { task: any, color: string, onEdit: () => void }) {
     const updateTask = useUpdateTask()
 
     return (
         <div className={`p-2.5 rounded-lg border bg-background group hover:shadow-md transition-all cursor-pointer relative overflow-hidden`}
-            onClick={() => { /* Open edit modal? */ }}>
+            onClick={onEdit}>
             <div className={`absolute left-0 top-0 bottom-0 w-1 ${color === 'destructive' ? 'bg-destructive' :
                 color === 'primary' ? 'bg-primary' :
                     color === 'amber' ? 'bg-amber-500' : 'bg-muted-foreground'

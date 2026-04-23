@@ -5,32 +5,35 @@ import uuid
 
 from api.dependencies import get_db, get_current_user
 from models.domain import StakeholderInteraction, SentimentEnum
+from models.schemas import InteractionCreate, InteractionRead
 from services import interactions as interaction_service
+from services import ai as ai_service
 
 router = APIRouter(prefix="/interactions", tags=["Relationship Journaling"])
 
-@router.post("/", response_model=StakeholderInteraction)
+@router.post("/", response_model=InteractionRead)
 async def record_interaction(
-    content: str,
-    stakeholder_ids: List[uuid.UUID] = [],
-    sentiment: SentimentEnum = SentimentEnum.neutral,
-    lesson_learned: Optional[str] = None,
-    advice_received: Optional[str] = None,
+    interaction_in: InteractionCreate,
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     return await interaction_service.create_interaction(
-        db, content, sentiment, stakeholder_ids, lesson_learned, advice_received
+        db, 
+        interaction_in.content, 
+        interaction_in.sentiment, 
+        interaction_in.stakeholder_ids, 
+        interaction_in.lesson_learned, 
+        interaction_in.advice_received
     )
 
-@router.get("/", response_model=List[StakeholderInteraction])
+@router.get("/", response_model=List[InteractionRead])
 async def get_all_history(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     return await interaction_service.get_all_interactions(db)
 
-@router.get("/stakeholder/{stakeholder_id}", response_model=List[StakeholderInteraction])
+@router.get("/stakeholder/{stakeholder_id}", response_model=List[InteractionRead])
 async def get_stakeholder_history(
     stakeholder_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),

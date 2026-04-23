@@ -27,8 +27,14 @@ async def create_interaction(
         db.add(link)
         
     await db.commit()
-    await db.refresh(interaction)
-    return interaction
+    
+    # Return with stakeholders loaded
+    return await get_all_interactions_by_id(db, interaction.id)
+
+async def get_all_interactions_by_id(db: AsyncSession, interaction_id: uuid.UUID) -> Optional[StakeholderInteraction]:
+    statement = select(StakeholderInteraction).where(StakeholderInteraction.id == interaction_id).options(selectinload(StakeholderInteraction.stakeholders))
+    results = await db.exec(statement)
+    return results.first()
 
 async def get_interactions_by_stakeholder(db: AsyncSession, stakeholder_id: uuid.UUID) -> List[StakeholderInteraction]:
     statement = select(StakeholderInteraction).join(StakeholderInteractionLink).where(StakeholderInteractionLink.stakeholder_id == stakeholder_id).options(selectinload(StakeholderInteraction.stakeholders)).order_by(StakeholderInteraction.created_at.desc())

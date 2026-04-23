@@ -1,4 +1,6 @@
 
+IDEE PER IL FUTURO - ATTENZIONE NON IMPLEMENTARE ORA!
+
 - non so se possiamo gestire qui la KB o in un progetto separato. però se è un personal OS potrebbe avere senso
 - security!
 - dettatura
@@ -18,3 +20,5 @@
 - aggiungere contesto progetto
 
 - gestione chitarra.. come migliorare? inizia a servire un po' di contesto.. o magari un'app specializzata per lo studio?
+
+- ipotizzare uno user journey

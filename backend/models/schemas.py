@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from models.domain import StatusEnum, HealthEnum, GradeEnum, SeniorityEnum, ProactivityEnum, ProductivityEnum, OrganizationEnum, InteractionEnum, StrategicCategoryEnum, ProjectTypeEnum, ProjectAreaEnum, CircleEnum, TraitCategory, TraitType
+from models.domain import StatusEnum, HealthEnum, GradeEnum, SeniorityEnum, ProactivityEnum, ProductivityEnum, OrganizationEnum, InteractionEnum, StrategicCategoryEnum, ProjectTypeEnum, ProjectAreaEnum, CircleEnum, TraitCategory, TraitType, SentimentEnum
 from typing import List
 import uuid
 
@@ -295,4 +295,24 @@ class AssessmentRead(AssessmentCreate):
 
 class ProjectDetailRead(ProjectRead):
     assessments: List[AssessmentRead] = []
+
+# --- RELATIONSHIP JOURNALING ---
+class InteractionCreate(BaseModel):
+    content: str
+    stakeholder_ids: List[uuid.UUID] = []
+    sentiment: SentimentEnum = SentimentEnum.neutral
+    lesson_learned: Optional[str] = None
+    advice_received: Optional[str] = None
+
+class InteractionRead(BaseModel):
+    id: uuid.UUID
+    content: str
+    sentiment: SentimentEnum
+    lesson_learned: Optional[str] = None
+    advice_received: Optional[str] = None
+    created_at: datetime
+    stakeholders: List[dict] = []
+
+    class Config:
+        from_attributes = True
 
