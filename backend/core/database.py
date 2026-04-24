@@ -28,3 +28,6 @@ async def get_db_session():
     async with AsyncSession(engine) as session:
         yield session
 
+# Alias for consistent router dependency injection
+get_db = get_db_session
+
