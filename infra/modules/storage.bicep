@@ -13,7 +13,15 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-09-01' = {
 resource staticWebsite 'Microsoft.Storage/storageAccounts/blobServices@2021-09-01' = {
   parent: storage
   name: 'default'
-)
+}
+
+resource kbContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-09-01' = {
+  parent: staticWebsite
+  name: 'knowledge-base'
+  properties: {
+    publicAccess: 'None'
+  }
+}
 
 // Bicep doesn't natively enable static website via resource properties in basic Storage provider resource yet
 // Usually requires a deployment script or Terraform, but we can output the URL logic.

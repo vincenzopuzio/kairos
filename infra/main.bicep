@@ -34,6 +34,15 @@ module storage './modules/storage.bicep' = {
   }
 }
 
+module cosmos './modules/cosmos.bicep' = {
+  scope: rg
+  name: 'cosmosDeployment'
+  params: {
+    location: location
+    accountName: 'cosmos-${projectName}-${uniqueString(rg.id)}'
+  }
+}
+
 module database './modules/db.bicep' = {
   scope: rg
   name: 'databaseDeployment'

@@ -255,7 +255,9 @@ class OsSettings(SQLModel, table=True):
 class KnowledgeEntry(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     title: str = Field(index=True)
-    content: str = Field()
+    content: str = Field() # Summary or preview; full content in storage_path
+    storage_path: Optional[str] = Field(default=None) # URI to Blob or Local Path
+    embedding: Optional[str] = Field(default=None) # JSON-stringified vector
     tags: str = Field(default="") # Comma-separated: "python,architecture,fastapi"
     source_url: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)

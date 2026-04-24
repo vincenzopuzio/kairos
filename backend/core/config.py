@@ -25,6 +25,18 @@ class Settings(BaseSettings):
     
     # DATABASE
     DATABASE_URL: str = "sqlite+aiosqlite:///./sql_app.db"
+    
+    # KNOWLEDGE BASE SETTINGS
+    KB_STORAGE_PROVIDER: str = "local" # "local" or "azure"
+    KB_LOCAL_PATH: str = "./data/kb_files"
+    AZURE_STORAGE_CONNECTION_STRING: str | None = None
+    AZURE_KB_CONTAINER: str = "knowledge-base"
+    
+    # COSMOS DB (For Knowledge Metadata & Vectors)
+    COSMOS_ENDPOINT: str | None = None
+    COSMOS_KEY: str | None = None
+    COSMOS_DATABASE: str = "KairOS"
+    COSMOS_CONTAINER: str = "KnowledgeBase"
 
     @property
     def async_database_url(self) -> str:
