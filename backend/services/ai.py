@@ -508,3 +508,52 @@ async def ingest_tasks_from_text(db: AsyncSession, text: str) -> TaskIngestRespo
     )
     
     return await run_with_fallback(task_ingestor_agent, prompt)
+
+
+# --- VISION AGENT (OCR & Image Analysis) ---
+
+class VisionParseResult(BaseModel):
+    summary: str = Field(description="Synthesized summary of the image content")
+    extracted_text: str = Field(description="Raw text detected in the image (OCR)")
+    suggested_tasks: List[AtomicSubTask] = Field(description="Actionable tasks derived from the image visual context")
+    confidence_score: float = Field(description="Confidence in the extraction accuracy")
+
+vision_agent = Agent(
+    model=settings.AI_MODEL,
+    output_type=VisionParseResult,
+    system_prompt=(
+        "You are an elite Vision Consultant. "
+        "You will be provided with an image (whiteboard, document, meeting scene). "
+        "Your task is to: "
+        "1. Extract all text via OCR.\n"
+        "2. Provide a strategic summary.\n"
+        "3. PROPOSE 2-4 actionable KairOS tasks based on what you see.\n"
+        "Be architecturally precise."
+    )
+)
+
+async def analyze_vision_image(image_bytes: bytes, mime_type: str) -> VisionParseResult:
+    from pydantic_ai.models import BinaryPart
+    
+    # Using BinaryPart to send image data to multimodal models
+    message = [
+        BinaryPart(data=image_bytes, mime_type=mime_type),
+        "Analyze this image and extract strategic data."
+    ]
+    
+    return await run_with_fallback(vision_agent, message)
+
+
+# --- AUDIO TRANSCRIPTION AGENT ---
+
+async def transcribe_audio_to_tasks(audio_bytes: bytes, mime_type: str) -> TaskIngestResponse:
+    from pydantic_ai.models import BinaryPart
+    
+    # Using BinaryPart for multimodal audio ingestion
+    message = [
+        BinaryPart(data=audio_bytes, mime_type=mime_type),
+        "Transcribe this audio note and extract any actionable tasks. Map them to projects if possible."
+    ]
+    
+    # We reuse the task_ingestor_agent logic but with audio input
+    return await run_with_fallback(task_ingestor_agent, message)
