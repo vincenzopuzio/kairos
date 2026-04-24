@@ -67,7 +67,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
           env: [
             {
               name: 'DATABASE_URL'
-              value: 'postgresql+asyncpg://${dbUser}:${dbPassword}@${dbHost}/${dbName}'
+              value: 'mssql+aioodbc://${dbUser}:${dbPassword}@${dbHost}/${dbName}'
             }
             {
               name: 'AI_PROVIDER'

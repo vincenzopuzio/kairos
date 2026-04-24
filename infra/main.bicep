@@ -5,6 +5,12 @@ param projectName string = 'kairos'
 param environment string = 'prod'
 param dbAdminPassword string @secure()
 
+@allowed([
+  'Basic'
+  'GP_S_Gen5_1'
+])
+param dbSku string = 'Basic'
+
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'rg-${projectName}-${environment}'
   location: location
@@ -33,8 +39,9 @@ module database './modules/db.bicep' = {
   name: 'databaseDeployment'
   params: {
     location: location
-    serverName: 'psql-${projectName}-${environment}'
+    serverName: 'sql-${projectName}-${environment}'
     adminPassword: dbAdminPassword
+    skuName: dbSku
   }
 }
 

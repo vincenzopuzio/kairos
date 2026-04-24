@@ -30,10 +30,17 @@ class Settings(BaseSettings):
     def async_database_url(self) -> str:
         """Ensures the database URL is compatible with async drivers."""
         url = self.DATABASE_URL
-        if url.startswith("postgres://"):
+        if url.startswith("postgres://") or url.startswith("postgresql://"):
             url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif "database.windows.net" in url and "Driver=" not in url:
+            # Automatic enrichment for Azure SQL if using a standard connection string
+            # SQLModel/SQLAlchemy MS SQL async needs mssql+aioodbc
+            if url.startswith("mssql://"):
+                url = url.replace("mssql://", "mssql+aioodbc://", 1)
+            # Ensure Encrypt and TrustServerCertificate for Azure
+            if "?" not in url:
+                url += "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=no"
         return url
     
     # CORS
